@@ -1,0 +1,159 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "",
+    "title": "Todo Private API",
+    "contact": {
+      "name": "mars"
+    },
+    "version": "v1"
+  },
+  "basePath": "/api-private/v1/todo",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "securityDefinitions": {
+    "Basic": {
+      "type": "basic"
+    },
+    "Bearer": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "Authorization"
+    }
+  },
+  "parameters": {
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "",
+        "operationId": "GetTodoList",
+        "parameters": [
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/TodoItem"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "",
+        "operationId": "AddTodo",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "todoItem",
+            "schema": {
+              "$ref": "#/definitions/TodoItem"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/{todoId}":{
+      "parameters": [
+        {
+          "in": "path",
+          "name": "todoId",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "GetTodo",
+        "parameters": [
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "$ref": "#/definitions/TodoItem"
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "",
+        "operationId": "UpdateTodo",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "todoItem",
+            "schema": {
+              "$ref": "#/definitions/TodoItem"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      },
+      "delete": {
+        "summary": "",
+        "operationId": "RemoveTodo",
+        "parameters": [
+
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "TodoItem": {
+      "type": "object",
+      "properties": {
+        "todoId":{
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "desc": {
+          "type": "string"
+        },
+        "priority":{
+          "type": "integer",
+          "format": "int32"
+        },
+        "status":{
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    }
+  }
+}
