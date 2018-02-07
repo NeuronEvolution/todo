@@ -37,6 +37,19 @@
         "summary": "",
         "operationId": "GetTodoList",
         "parameters": [
+          {
+            "in": "query",
+            "name": "otherUserId",
+            "type": "string",
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "Bearer": [
+
+            ]
+          }
         ],
         "responses": {
           "200": {
@@ -63,6 +76,13 @@
             "required": true
           }
         ],
+        "security": [
+          {
+            "Bearer": [
+
+            ]
+          }
+        ],
         "responses": {
           "200": {
             "description": "ok",
@@ -73,7 +93,7 @@
         }
       }
     },
-    "/{todoId}":{
+    "/{todoId}": {
       "parameters": [
         {
           "in": "path",
@@ -86,6 +106,13 @@
         "summary": "",
         "operationId": "GetTodo",
         "parameters": [
+        ],
+        "security": [
+          {
+            "Bearer": [
+
+            ]
+          }
         ],
         "responses": {
           "200": {
@@ -109,6 +136,13 @@
             "required": true
           }
         ],
+        "security": [
+          {
+            "Bearer": [
+
+            ]
+          }
+        ],
         "responses": {
           "200": {
             "description": "ok"
@@ -119,11 +153,49 @@
         "summary": "",
         "operationId": "RemoveTodo",
         "parameters": [
+        ],
+        "security": [
+          {
+            "Bearer": [
 
+            ]
+          }
         ],
         "responses": {
           "200": {
             "description": "ok"
+          }
+        }
+      }
+    },
+    "/listByCategory":{
+      "get": {
+        "summary": "",
+        "operationId": "GetTodoListByCategory",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "otherUserId",
+            "type": "string",
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "Bearer": [
+
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/TodoItemGroup"
+              }
+            }
           }
         }
       }
@@ -133,10 +205,13 @@
     "TodoItem": {
       "type": "object",
       "properties": {
-        "todoId":{
+        "todoId": {
           "type": "string"
         },
         "userId": {
+          "type": "string"
+        },
+        "category": {
           "type": "string"
         },
         "title": {
@@ -145,13 +220,26 @@
         "desc": {
           "type": "string"
         },
-        "priority":{
-          "type": "integer",
-          "format": "int32"
+        "status": {
+          "type": "string"
         },
-        "status":{
+        "priority": {
           "type": "integer",
           "format": "int32"
+        }
+      }
+    },
+    "TodoItemGroup": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "todoItemList": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TodoItem"
+          }
         }
       }
     }

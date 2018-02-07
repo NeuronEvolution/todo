@@ -13,7 +13,11 @@ import (
 
 // GetTodoListURL generates an URL for the get todo list operation
 type GetTodoListURL struct {
+	OtherUserID *string
+
 	_basePath string
+	// avoid unkeyed usage
+	_ struct{}
 }
 
 // WithBasePath sets the base path for this url builder, only required when it's different from the
@@ -42,6 +46,18 @@ func (o *GetTodoListURL) Build() (*url.URL, error) {
 		_basePath = "/api-private/v1/todo"
 	}
 	result.Path = golangswaggerpaths.Join(_basePath, _path)
+
+	qs := make(url.Values)
+
+	var otherUserID string
+	if o.OtherUserID != nil {
+		otherUserID = *o.OtherUserID
+	}
+	if otherUserID != "" {
+		qs.Set("otherUserId", otherUserID)
+	}
+
+	result.RawQuery = qs.Encode()
 
 	return &result, nil
 }

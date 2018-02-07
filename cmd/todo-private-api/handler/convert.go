@@ -11,10 +11,11 @@ func fromTodoItem(p *models.TodoItem) (r *api.TodoItem) {
 	r = &api.TodoItem{}
 	r.TodoID = p.TodoID
 	r.UserID = p.UserID
+	r.Category = p.Category
 	r.Title = p.Title
 	r.Desc = p.Desc
-	r.Priority = p.Priority
 	r.Status = p.Status
+	r.Priority = p.Priority
 
 	return r
 }
@@ -40,10 +41,36 @@ func toTodoItem(p *api.TodoItem) (r *models.TodoItem) {
 	r = &models.TodoItem{}
 	r.TodoID = p.TodoID
 	r.UserID = p.UserID
+	r.Category = p.Category
 	r.Title = p.Title
 	r.Desc = p.Desc
-	r.Priority = p.Priority
 	r.Status = p.Status
+	r.Priority = p.Priority
+
+	return r
+}
+
+func fromTodoItemGroup(p *models.TodoItemGroup) (r *api.TodoItemGroup) {
+	if p == nil {
+		return nil
+	}
+
+	r = &api.TodoItemGroup{}
+	r.Category = p.Category
+	r.TodoItemList = fromTodoItemList(p.TodoItemList)
+
+	return r
+}
+
+func fromTodoItemGroupList(p []*models.TodoItemGroup) (r []*api.TodoItemGroup) {
+	if p == nil {
+		return nil
+	}
+
+	r = make([]*api.TodoItemGroup, len(p))
+	for i, v := range p {
+		r[i] = fromTodoItemGroup(v)
+	}
 
 	return r
 }

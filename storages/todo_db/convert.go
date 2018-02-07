@@ -10,10 +10,11 @@ func FromTodo(p *Todo) (r *models.TodoItem) {
 	r = &models.TodoItem{}
 	r.TodoID = p.TodoId
 	r.UserID = p.UserId
+	r.Category = p.TodoCategory
 	r.Title = p.TodoTitle
 	r.Desc = p.TodoDesc
-	r.Priority = p.TodoPriority
 	r.Status = p.TodoStatus
+	r.Priority = p.TodoPriority
 
 	return r
 }
@@ -39,10 +40,11 @@ func ToTodo(p *models.TodoItem) (r *Todo) {
 	r = &Todo{}
 	r.TodoId = p.TodoID
 	r.UserId = p.UserID
+	r.TodoCategory = p.Category
 	r.TodoTitle = p.Title
 	r.TodoDesc = p.Desc
+	r.TodoStatus = p.Status
 	r.TodoPriority = int32(p.Priority)
-	r.TodoStatus = int32(p.Status)
 
 	return r
 }

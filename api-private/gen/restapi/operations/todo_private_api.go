@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/NeuronFramework/restful"
+	errors "github.com/go-openapi/errors"
 	loads "github.com/go-openapi/loads"
 	runtime "github.com/go-openapi/runtime"
 	middleware "github.com/go-openapi/runtime/middleware"
@@ -35,21 +36,32 @@ func NewTodoPrivateAPI(spec *loads.Document) *TodoPrivateAPI {
 		BearerAuthenticator: security.BearerAuth,
 		JSONConsumer:        runtime.JSONConsumer(),
 		JSONProducer:        runtime.JSONProducer(),
-		AddTodoHandler: AddTodoHandlerFunc(func(params AddTodoParams) middleware.Responder {
-			return middleware.NotImplemented("operation AddTodo has not yet been implemented")
+		AddTodoHandler: AddTodoHandlerFunc(func(params AddTodoParams, principal interface{}) middleware.Responder {
+			panic("operation AddTodo has not yet been implemented")
 		}),
-		GetTodoHandler: GetTodoHandlerFunc(func(params GetTodoParams) middleware.Responder {
-			return middleware.NotImplemented("operation GetTodo has not yet been implemented")
+		GetTodoHandler: GetTodoHandlerFunc(func(params GetTodoParams, principal interface{}) middleware.Responder {
+			panic("operation GetTodo has not yet been implemented")
 		}),
-		GetTodoListHandler: GetTodoListHandlerFunc(func(params GetTodoListParams) middleware.Responder {
-			return middleware.NotImplemented("operation GetTodoList has not yet been implemented")
+		GetTodoListHandler: GetTodoListHandlerFunc(func(params GetTodoListParams, principal interface{}) middleware.Responder {
+			panic("operation GetTodoList has not yet been implemented")
 		}),
-		RemoveTodoHandler: RemoveTodoHandlerFunc(func(params RemoveTodoParams) middleware.Responder {
-			return middleware.NotImplemented("operation RemoveTodo has not yet been implemented")
+		GetTodoListByCategoryHandler: GetTodoListByCategoryHandlerFunc(func(params GetTodoListByCategoryParams, principal interface{}) middleware.Responder {
+			panic("operation GetTodoListByCategory has not yet been implemented")
 		}),
-		UpdateTodoHandler: UpdateTodoHandlerFunc(func(params UpdateTodoParams) middleware.Responder {
-			return middleware.NotImplemented("operation UpdateTodo has not yet been implemented")
+		RemoveTodoHandler: RemoveTodoHandlerFunc(func(params RemoveTodoParams, principal interface{}) middleware.Responder {
+			panic("operation RemoveTodo has not yet been implemented")
 		}),
+		UpdateTodoHandler: UpdateTodoHandlerFunc(func(params UpdateTodoParams, principal interface{}) middleware.Responder {
+			panic("operation UpdateTodo has not yet been implemented")
+		}),
+
+		// Applies when the "Authorization" header is set
+		BearerAuth: func(token string) (interface{}, error) {
+			return nil, errors.NotImplemented("api key auth (Bearer) Authorization from header param [Authorization] has not yet been implemented")
+		},
+
+		// default authorizer is authorized meaning no requests are blocked
+		APIAuthorizer: security.Authorized(),
 	}
 }
 
@@ -79,12 +91,21 @@ type TodoPrivateAPI struct {
 	// JSONProducer registers a producer for a "application/json" mime type
 	JSONProducer runtime.Producer
 
+	// BearerAuth registers a function that takes a token and returns a principal
+	// it performs authentication based on an api key Authorization provided in the header
+	BearerAuth func(string) (interface{}, error)
+
+	// APIAuthorizer provides access control (ACL/RBAC/ABAC) by providing access to the request and authenticated principal
+	APIAuthorizer runtime.Authorizer
+
 	// AddTodoHandler sets the operation handler for the add todo operation
 	AddTodoHandler AddTodoHandler
 	// GetTodoHandler sets the operation handler for the get todo operation
 	GetTodoHandler GetTodoHandler
 	// GetTodoListHandler sets the operation handler for the get todo list operation
 	GetTodoListHandler GetTodoListHandler
+	// GetTodoListByCategoryHandler sets the operation handler for the get todo list by category operation
+	GetTodoListByCategoryHandler GetTodoListByCategoryHandler
 	// RemoveTodoHandler sets the operation handler for the remove todo operation
 	RemoveTodoHandler RemoveTodoHandler
 	// UpdateTodoHandler sets the operation handler for the update todo operation
@@ -152,6 +173,10 @@ func (o *TodoPrivateAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
+	if o.BearerAuth == nil {
+		unregistered = append(unregistered, "AuthorizationAuth")
+	}
+
 	if o.AddTodoHandler == nil {
 		unregistered = append(unregistered, "AddTodoHandler")
 	}
@@ -162,6 +187,10 @@ func (o *TodoPrivateAPI) Validate() error {
 
 	if o.GetTodoListHandler == nil {
 		unregistered = append(unregistered, "GetTodoListHandler")
+	}
+
+	if o.GetTodoListByCategoryHandler == nil {
+		unregistered = append(unregistered, "GetTodoListByCategoryHandler")
 	}
 
 	if o.RemoveTodoHandler == nil {
@@ -187,14 +216,24 @@ func (o *TodoPrivateAPI) ServeErrorFor(operationID string) func(http.ResponseWri
 // AuthenticatorsFor gets the authenticators for the specified security schemes
 func (o *TodoPrivateAPI) AuthenticatorsFor(schemes map[string]spec.SecurityScheme) map[string]runtime.Authenticator {
 
-	return nil
+	result := make(map[string]runtime.Authenticator)
+	for name, scheme := range schemes {
+		switch name {
+
+		case "Bearer":
+
+			result[name] = o.APIKeyAuthenticator(scheme.Name, scheme.In, o.BearerAuth)
+
+		}
+	}
+	return result
 
 }
 
 // Authorizer returns the registered authorizer
 func (o *TodoPrivateAPI) Authorizer() runtime.Authorizer {
 
-	return nil
+	return o.APIAuthorizer
 
 }
 
@@ -276,6 +315,11 @@ func (o *TodoPrivateAPI) initHandlerCache() {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"][""] = NewGetTodoList(o.context, o.GetTodoListHandler)
+
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/listByCategory"] = NewGetTodoListByCategory(o.context, o.GetTodoListByCategoryHandler)
 
 	if o.handlers["DELETE"] == nil {
 		o.handlers["DELETE"] = make(map[string]http.Handler)

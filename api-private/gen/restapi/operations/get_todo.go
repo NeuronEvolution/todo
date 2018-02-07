@@ -13,16 +13,16 @@ import (
 )
 
 // GetTodoHandlerFunc turns a function with the right signature into a get todo handler
-type GetTodoHandlerFunc func(GetTodoParams) middleware.Responder
+type GetTodoHandlerFunc func(GetTodoParams, interface{}) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn GetTodoHandlerFunc) Handle(params GetTodoParams) middleware.Responder {
-	return fn(params)
+func (fn GetTodoHandlerFunc) Handle(params GetTodoParams, principal interface{}) middleware.Responder {
+	return fn(params, principal)
 }
 
 // GetTodoHandler interface for that can handle valid get todo params
 type GetTodoHandler interface {
-	Handle(GetTodoParams) middleware.Responder
+	Handle(GetTodoParams, interface{}) middleware.Responder
 }
 
 // NewGetTodo creates a new http.Handler for the get todo operation
@@ -47,6 +47,19 @@ func (o *GetTodo) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 	var Params = NewGetTodoParams()
 
+	uprinc, aCtx, err := o.Context.Authorize(r, route)
+	if err != nil {
+		o.Context.Respond(rw, r, route.Produces, route, err)
+		return
+	}
+	if aCtx != nil {
+		r = aCtx
+	}
+	var principal interface{}
+	if uprinc != nil {
+		principal = uprinc
+	}
+
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
@@ -54,7 +67,7 @@ func (o *GetTodo) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	zap.L().Named("api").Info("GetTodo", zap.Any("request", &Params))
 
-	res := o.Handler.Handle(Params) // actually handle the request
+	res := o.Handler.Handle(Params, principal) // actually handle the request
 
 	zap.L().Named("api").Info("GetTodo", zap.Any("response", res))
 

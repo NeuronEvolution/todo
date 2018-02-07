@@ -16,6 +16,9 @@ import (
 // swagger:model TodoItem
 type TodoItem struct {
 
+	// category
+	Category string `json:"category,omitempty"`
+
 	// desc
 	Desc string `json:"desc,omitempty"`
 
@@ -23,7 +26,7 @@ type TodoItem struct {
 	Priority int32 `json:"priority,omitempty"`
 
 	// status
-	Status int32 `json:"status,omitempty"`
+	Status string `json:"status,omitempty"`
 
 	// title
 	Title string `json:"title,omitempty"`

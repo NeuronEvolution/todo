@@ -13,16 +13,16 @@ import (
 )
 
 // RemoveTodoHandlerFunc turns a function with the right signature into a remove todo handler
-type RemoveTodoHandlerFunc func(RemoveTodoParams) middleware.Responder
+type RemoveTodoHandlerFunc func(RemoveTodoParams, interface{}) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn RemoveTodoHandlerFunc) Handle(params RemoveTodoParams) middleware.Responder {
-	return fn(params)
+func (fn RemoveTodoHandlerFunc) Handle(params RemoveTodoParams, principal interface{}) middleware.Responder {
+	return fn(params, principal)
 }
 
 // RemoveTodoHandler interface for that can handle valid remove todo params
 type RemoveTodoHandler interface {
-	Handle(RemoveTodoParams) middleware.Responder
+	Handle(RemoveTodoParams, interface{}) middleware.Responder
 }
 
 // NewRemoveTodo creates a new http.Handler for the remove todo operation
@@ -47,6 +47,19 @@ func (o *RemoveTodo) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 	var Params = NewRemoveTodoParams()
 
+	uprinc, aCtx, err := o.Context.Authorize(r, route)
+	if err != nil {
+		o.Context.Respond(rw, r, route.Produces, route, err)
+		return
+	}
+	if aCtx != nil {
+		r = aCtx
+	}
+	var principal interface{}
+	if uprinc != nil {
+		principal = uprinc
+	}
+
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
@@ -54,7 +67,7 @@ func (o *RemoveTodo) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	zap.L().Named("api").Info("RemoveTodo", zap.Any("request", &Params))
 
-	res := o.Handler.Handle(Params) // actually handle the request
+	res := o.Handler.Handle(Params, principal) // actually handle the request
 
 	zap.L().Named("api").Info("RemoveTodo", zap.Any("response", res))
 

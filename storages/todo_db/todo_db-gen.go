@@ -68,12 +68,13 @@ const TODO_FIELD_UPDATE_TIME = TODO_FIELD("update_time")
 const TODO_FIELD_UPDATE_VERSION = TODO_FIELD("update_version")
 const TODO_FIELD_TODO_ID = TODO_FIELD("todo_id")
 const TODO_FIELD_USER_ID = TODO_FIELD("user_id")
+const TODO_FIELD_TODO_CATEGORY = TODO_FIELD("todo_category")
 const TODO_FIELD_TODO_TITLE = TODO_FIELD("todo_title")
 const TODO_FIELD_TODO_DESC = TODO_FIELD("todo_desc")
-const TODO_FIELD_TODO_PRIORITY = TODO_FIELD("todo_priority")
 const TODO_FIELD_TODO_STATUS = TODO_FIELD("todo_status")
+const TODO_FIELD_TODO_PRIORITY = TODO_FIELD("todo_priority")
 
-const TODO_ALL_FIELDS_STRING = "id,create_time,update_time,update_version,todo_id,user_id,todo_title,todo_desc,todo_priority,todo_status"
+const TODO_ALL_FIELDS_STRING = "id,create_time,update_time,update_version,todo_id,user_id,todo_category,todo_title,todo_desc,todo_status,todo_priority"
 
 var TODO_ALL_FIELDS = []string{
 	"id",
@@ -82,10 +83,11 @@ var TODO_ALL_FIELDS = []string{
 	"update_version",
 	"todo_id",
 	"user_id",
+	"todo_category",
 	"todo_title",
 	"todo_desc",
-	"todo_priority",
 	"todo_status",
+	"todo_priority",
 }
 
 type Todo struct {
@@ -95,10 +97,11 @@ type Todo struct {
 	UpdateVersion int64  //size=20
 	TodoId        string //size=128
 	UserId        string //size=128
+	TodoCategory  string //size=32
 	TodoTitle     string //size=32
 	TodoDesc      string //size=1024
+	TodoStatus    string //size=32
 	TodoPriority  int32  //size=10
-	TodoStatus    int32  //size=11
 }
 
 type TodoQuery struct {
@@ -271,6 +274,24 @@ func (q *TodoQuery) UserId_Greater(v string) *TodoQuery { return q.w("user_id>'"
 func (q *TodoQuery) UserId_GreaterEqual(v string) *TodoQuery {
 	return q.w("user_id>='" + fmt.Sprint(v) + "'")
 }
+func (q *TodoQuery) TodoCategory_Equal(v string) *TodoQuery {
+	return q.w("todo_category='" + fmt.Sprint(v) + "'")
+}
+func (q *TodoQuery) TodoCategory_NotEqual(v string) *TodoQuery {
+	return q.w("todo_category<>'" + fmt.Sprint(v) + "'")
+}
+func (q *TodoQuery) TodoCategory_Less(v string) *TodoQuery {
+	return q.w("todo_category<'" + fmt.Sprint(v) + "'")
+}
+func (q *TodoQuery) TodoCategory_LessEqual(v string) *TodoQuery {
+	return q.w("todo_category<='" + fmt.Sprint(v) + "'")
+}
+func (q *TodoQuery) TodoCategory_Greater(v string) *TodoQuery {
+	return q.w("todo_category>'" + fmt.Sprint(v) + "'")
+}
+func (q *TodoQuery) TodoCategory_GreaterEqual(v string) *TodoQuery {
+	return q.w("todo_category>='" + fmt.Sprint(v) + "'")
+}
 func (q *TodoQuery) TodoTitle_Equal(v string) *TodoQuery {
 	return q.w("todo_title='" + fmt.Sprint(v) + "'")
 }
@@ -303,6 +324,24 @@ func (q *TodoQuery) TodoDesc_Greater(v string) *TodoQuery {
 func (q *TodoQuery) TodoDesc_GreaterEqual(v string) *TodoQuery {
 	return q.w("todo_desc>='" + fmt.Sprint(v) + "'")
 }
+func (q *TodoQuery) TodoStatus_Equal(v string) *TodoQuery {
+	return q.w("todo_status='" + fmt.Sprint(v) + "'")
+}
+func (q *TodoQuery) TodoStatus_NotEqual(v string) *TodoQuery {
+	return q.w("todo_status<>'" + fmt.Sprint(v) + "'")
+}
+func (q *TodoQuery) TodoStatus_Less(v string) *TodoQuery {
+	return q.w("todo_status<'" + fmt.Sprint(v) + "'")
+}
+func (q *TodoQuery) TodoStatus_LessEqual(v string) *TodoQuery {
+	return q.w("todo_status<='" + fmt.Sprint(v) + "'")
+}
+func (q *TodoQuery) TodoStatus_Greater(v string) *TodoQuery {
+	return q.w("todo_status>'" + fmt.Sprint(v) + "'")
+}
+func (q *TodoQuery) TodoStatus_GreaterEqual(v string) *TodoQuery {
+	return q.w("todo_status>='" + fmt.Sprint(v) + "'")
+}
 func (q *TodoQuery) TodoPriority_Equal(v int32) *TodoQuery {
 	return q.w("todo_priority='" + fmt.Sprint(v) + "'")
 }
@@ -320,24 +359,6 @@ func (q *TodoQuery) TodoPriority_Greater(v int32) *TodoQuery {
 }
 func (q *TodoQuery) TodoPriority_GreaterEqual(v int32) *TodoQuery {
 	return q.w("todo_priority>='" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoStatus_Equal(v int32) *TodoQuery {
-	return q.w("todo_status='" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoStatus_NotEqual(v int32) *TodoQuery {
-	return q.w("todo_status<>'" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoStatus_Less(v int32) *TodoQuery {
-	return q.w("todo_status<'" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoStatus_LessEqual(v int32) *TodoQuery {
-	return q.w("todo_status<='" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoStatus_Greater(v int32) *TodoQuery {
-	return q.w("todo_status>'" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoStatus_GreaterEqual(v int32) *TodoQuery {
-	return q.w("todo_status>='" + fmt.Sprint(v) + "'")
 }
 
 type TodoDao struct {
@@ -380,12 +401,12 @@ func (dao *TodoDao) init() (err error) {
 }
 
 func (dao *TodoDao) prepareInsertStmt() (err error) {
-	dao.insertStmt, err = dao.db.Prepare(context.Background(), "INSERT INTO todo (update_version,todo_id,user_id,todo_title,todo_desc,todo_priority,todo_status) VALUES (?,?,?,?,?,?,?)")
+	dao.insertStmt, err = dao.db.Prepare(context.Background(), "INSERT INTO todo (update_version,todo_id,user_id,todo_category,todo_title,todo_desc,todo_status,todo_priority) VALUES (?,?,?,?,?,?,?,?)")
 	return err
 }
 
 func (dao *TodoDao) prepareUpdateStmt() (err error) {
-	dao.updateStmt, err = dao.db.Prepare(context.Background(), "UPDATE todo SET update_version=update_version+1,todo_id=?,user_id=?,todo_title=?,todo_desc=?,todo_priority=?,todo_status=? WHERE id=? AND update_version=?")
+	dao.updateStmt, err = dao.db.Prepare(context.Background(), "UPDATE todo SET update_version=update_version+1,todo_id=?,user_id=?,todo_category=?,todo_title=?,todo_desc=?,todo_status=?,todo_priority=? WHERE id=? AND update_version=?")
 	return err
 }
 
@@ -400,7 +421,7 @@ func (dao *TodoDao) Insert(ctx context.Context, tx *wrap.Tx, e *Todo) (id int64,
 		stmt = tx.Stmt(ctx, stmt)
 	}
 
-	result, err := stmt.Exec(ctx, e.UpdateVersion, e.TodoId, e.UserId, e.TodoTitle, e.TodoDesc, e.TodoPriority, e.TodoStatus)
+	result, err := stmt.Exec(ctx, e.UpdateVersion, e.TodoId, e.UserId, e.TodoCategory, e.TodoTitle, e.TodoDesc, e.TodoStatus, e.TodoPriority)
 	if err != nil {
 		return 0, err
 	}
@@ -419,7 +440,7 @@ func (dao *TodoDao) Update(ctx context.Context, tx *wrap.Tx, e *Todo) (err error
 		stmt = tx.Stmt(ctx, stmt)
 	}
 
-	_, err = stmt.Exec(ctx, e.TodoId, e.UserId, e.TodoTitle, e.TodoDesc, e.TodoPriority, e.TodoStatus, e.Id, e.UpdateVersion)
+	_, err = stmt.Exec(ctx, e.TodoId, e.UserId, e.TodoCategory, e.TodoTitle, e.TodoDesc, e.TodoStatus, e.TodoPriority, e.Id, e.UpdateVersion)
 	if err != nil {
 		return err
 	}
@@ -443,7 +464,7 @@ func (dao *TodoDao) Delete(ctx context.Context, tx *wrap.Tx, id int64) (err erro
 
 func (dao *TodoDao) scanRow(row *wrap.Row) (*Todo, error) {
 	e := &Todo{}
-	err := row.Scan(&e.Id, &e.CreateTime, &e.UpdateTime, &e.UpdateVersion, &e.TodoId, &e.UserId, &e.TodoTitle, &e.TodoDesc, &e.TodoPriority, &e.TodoStatus)
+	err := row.Scan(&e.Id, &e.CreateTime, &e.UpdateTime, &e.UpdateVersion, &e.TodoId, &e.UserId, &e.TodoCategory, &e.TodoTitle, &e.TodoDesc, &e.TodoStatus, &e.TodoPriority)
 	if err != nil {
 		if err == wrap.ErrNoRows {
 			return nil, nil
@@ -459,7 +480,7 @@ func (dao *TodoDao) scanRows(rows *wrap.Rows) (list []*Todo, err error) {
 	list = make([]*Todo, 0)
 	for rows.Next() {
 		e := Todo{}
-		err = rows.Scan(&e.Id, &e.CreateTime, &e.UpdateTime, &e.UpdateVersion, &e.TodoId, &e.UserId, &e.TodoTitle, &e.TodoDesc, &e.TodoPriority, &e.TodoStatus)
+		err = rows.Scan(&e.Id, &e.CreateTime, &e.UpdateTime, &e.UpdateVersion, &e.TodoId, &e.UserId, &e.TodoCategory, &e.TodoTitle, &e.TodoDesc, &e.TodoStatus, &e.TodoPriority)
 		if err != nil {
 			return nil, err
 		}

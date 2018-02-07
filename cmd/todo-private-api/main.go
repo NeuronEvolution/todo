@@ -26,11 +26,13 @@ func main() {
 		}
 
 		api := operations.NewTodoPrivateAPI(swaggerSpec)
+		api.BearerAuth = h.BearerAuth
 		api.GetTodoListHandler = operations.GetTodoListHandlerFunc(h.GetTodoList)
 		api.GetTodoHandler = operations.GetTodoHandlerFunc(h.GetTodo)
 		api.AddTodoHandler = operations.AddTodoHandlerFunc(h.AddTodo)
 		api.UpdateTodoHandler = operations.UpdateTodoHandlerFunc(h.UpdateTodo)
 		api.RemoveTodoHandler = operations.RemoveTodoHandlerFunc(h.RemoveTodo)
+		api.GetTodoListByCategoryHandler = operations.GetTodoListByCategoryHandlerFunc(h.GetTodoListByCategory)
 
 		return api.Serve(nil), nil
 	})

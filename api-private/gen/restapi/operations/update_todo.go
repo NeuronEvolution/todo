@@ -13,16 +13,16 @@ import (
 )
 
 // UpdateTodoHandlerFunc turns a function with the right signature into a update todo handler
-type UpdateTodoHandlerFunc func(UpdateTodoParams) middleware.Responder
+type UpdateTodoHandlerFunc func(UpdateTodoParams, interface{}) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn UpdateTodoHandlerFunc) Handle(params UpdateTodoParams) middleware.Responder {
-	return fn(params)
+func (fn UpdateTodoHandlerFunc) Handle(params UpdateTodoParams, principal interface{}) middleware.Responder {
+	return fn(params, principal)
 }
 
 // UpdateTodoHandler interface for that can handle valid update todo params
 type UpdateTodoHandler interface {
-	Handle(UpdateTodoParams) middleware.Responder
+	Handle(UpdateTodoParams, interface{}) middleware.Responder
 }
 
 // NewUpdateTodo creates a new http.Handler for the update todo operation
@@ -47,6 +47,19 @@ func (o *UpdateTodo) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 	var Params = NewUpdateTodoParams()
 
+	uprinc, aCtx, err := o.Context.Authorize(r, route)
+	if err != nil {
+		o.Context.Respond(rw, r, route.Produces, route, err)
+		return
+	}
+	if aCtx != nil {
+		r = aCtx
+	}
+	var principal interface{}
+	if uprinc != nil {
+		principal = uprinc
+	}
+
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
@@ -54,7 +67,7 @@ func (o *UpdateTodo) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	zap.L().Named("api").Info("UpdateTodo", zap.Any("request", &Params))
 
-	res := o.Handler.Handle(Params) // actually handle the request
+	res := o.Handler.Handle(Params, principal) // actually handle the request
 
 	zap.L().Named("api").Info("UpdateTodo", zap.Any("response", res))
 

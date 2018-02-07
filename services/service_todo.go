@@ -37,8 +37,13 @@ func (s *TodoService) GetTodo(ctx context.Context, userId string, todoId string)
 }
 
 func (s *TodoService) AddTodo(ctx context.Context, userId string, todoItem *models.TodoItem) (todoId string, err error) {
+	if todoItem.Title == "" {
+		return "", errors.InvalidParam("Title", "标题不能为空")
+	}
+
 	dbTodo := todo_db.ToTodo(todoItem)
-	dbTodo.TodoId = rand.NextHex(32)
+	dbTodo.UserId = userId
+	dbTodo.TodoId = rand.NextHex(16)
 	_, err = s.todoDB.Todo.Insert(ctx, nil, dbTodo)
 	if err != nil {
 		return "", err

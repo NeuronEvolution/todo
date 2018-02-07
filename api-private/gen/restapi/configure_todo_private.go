@@ -36,20 +36,34 @@ func configureAPI(api *operations.TodoPrivateAPI) http.Handler {
 
 	api.JSONProducer = runtime.JSONProducer()
 
-	api.AddTodoHandler = operations.AddTodoHandlerFunc(func(params operations.AddTodoParams) middleware.Responder {
-		return middleware.NotImplemented("operation .AddTodo has not yet been implemented")
+	// Applies when the "Authorization" header is set
+	api.BearerAuth = func(token string) (interface{}, error) {
+		panic("api key auth (Bearer) Authorization from header param [Authorization] has not yet been implemented")
+	}
+
+	// Set your custom authorizer if needed. Default one is security.Authorized()
+	// Expected interface runtime.Authorizer
+	//
+	// Example:
+	// api.APIAuthorizer = security.Authorized()
+
+	api.AddTodoHandler = operations.AddTodoHandlerFunc(func(params operations.AddTodoParams, principal interface{}) middleware.Responder {
+		panic("operation .AddTodo has not yet been implemented")
 	})
-	api.GetTodoHandler = operations.GetTodoHandlerFunc(func(params operations.GetTodoParams) middleware.Responder {
-		return middleware.NotImplemented("operation .GetTodo has not yet been implemented")
+	api.GetTodoHandler = operations.GetTodoHandlerFunc(func(params operations.GetTodoParams, principal interface{}) middleware.Responder {
+		panic("operation .GetTodo has not yet been implemented")
 	})
-	api.GetTodoListHandler = operations.GetTodoListHandlerFunc(func(params operations.GetTodoListParams) middleware.Responder {
-		return middleware.NotImplemented("operation .GetTodoList has not yet been implemented")
+	api.GetTodoListHandler = operations.GetTodoListHandlerFunc(func(params operations.GetTodoListParams, principal interface{}) middleware.Responder {
+		panic("operation .GetTodoList has not yet been implemented")
 	})
-	api.RemoveTodoHandler = operations.RemoveTodoHandlerFunc(func(params operations.RemoveTodoParams) middleware.Responder {
-		return middleware.NotImplemented("operation .RemoveTodo has not yet been implemented")
+	api.GetTodoListByCategoryHandler = operations.GetTodoListByCategoryHandlerFunc(func(params operations.GetTodoListByCategoryParams, principal interface{}) middleware.Responder {
+		panic("operation .GetTodoListByCategory has not yet been implemented")
 	})
-	api.UpdateTodoHandler = operations.UpdateTodoHandlerFunc(func(params operations.UpdateTodoParams) middleware.Responder {
-		return middleware.NotImplemented("operation .UpdateTodo has not yet been implemented")
+	api.RemoveTodoHandler = operations.RemoveTodoHandlerFunc(func(params operations.RemoveTodoParams, principal interface{}) middleware.Responder {
+		panic("operation .RemoveTodo has not yet been implemented")
+	})
+	api.UpdateTodoHandler = operations.UpdateTodoHandlerFunc(func(params operations.UpdateTodoParams, principal interface{}) middleware.Responder {
+		panic("operation .UpdateTodo has not yet been implemented")
 	})
 
 	api.ServerShutdown = func() {}

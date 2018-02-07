@@ -36,7 +36,19 @@ func init() {
   "paths": {
     "/": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "operationId": "GetTodoList",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "otherUserId",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "ok",
@@ -50,6 +62,11 @@ func init() {
         }
       },
       "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "operationId": "AddTodo",
         "parameters": [
           {
@@ -71,8 +88,41 @@ func init() {
         }
       }
     },
+    "/listByCategory": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "operationId": "GetTodoListByCategory",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "otherUserId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/TodoItemGroup"
+              }
+            }
+          }
+        }
+      }
+    },
     "/{todoId}": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "operationId": "GetTodo",
         "responses": {
           "200": {
@@ -84,6 +134,11 @@ func init() {
         }
       },
       "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "operationId": "UpdateTodo",
         "parameters": [
           {
@@ -102,6 +157,11 @@ func init() {
         }
       },
       "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "operationId": "RemoveTodo",
         "responses": {
           "200": {
@@ -123,6 +183,9 @@ func init() {
     "TodoItem": {
       "type": "object",
       "properties": {
+        "category": {
+          "type": "string"
+        },
         "desc": {
           "type": "string"
         },
@@ -131,8 +194,7 @@ func init() {
           "format": "int32"
         },
         "status": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string"
         },
         "title": {
           "type": "string"
@@ -142,6 +204,20 @@ func init() {
         },
         "userId": {
           "type": "string"
+        }
+      }
+    },
+    "TodoItemGroup": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "todoItemList": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TodoItem"
+          }
         }
       }
     }
@@ -180,7 +256,19 @@ func init() {
   "paths": {
     "/": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "operationId": "GetTodoList",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "otherUserId",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "ok",
@@ -191,6 +279,11 @@ func init() {
         }
       },
       "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "operationId": "AddTodo",
         "parameters": [
           {
@@ -212,8 +305,38 @@ func init() {
         }
       }
     },
+    "/listByCategory": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "operationId": "GetTodoListByCategory",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "otherUserId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "$ref": "#/definitions/getTodoListByCategoryOKBody"
+            }
+          }
+        }
+      }
+    },
     "/{todoId}": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "operationId": "GetTodo",
         "responses": {
           "200": {
@@ -225,6 +348,11 @@ func init() {
         }
       },
       "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "operationId": "UpdateTodo",
         "parameters": [
           {
@@ -243,6 +371,11 @@ func init() {
         }
       },
       "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "operationId": "RemoveTodo",
         "responses": {
           "200": {
@@ -264,6 +397,9 @@ func init() {
     "TodoItem": {
       "type": "object",
       "properties": {
+        "category": {
+          "type": "string"
+        },
         "desc": {
           "type": "string"
         },
@@ -272,8 +408,7 @@ func init() {
           "format": "int32"
         },
         "status": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string"
         },
         "title": {
           "type": "string"
@@ -286,12 +421,37 @@ func init() {
         }
       }
     },
+    "TodoItemGroup": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "todoItemList": {
+          "$ref": "#/definitions/todoItemGroupTodoItemList"
+        }
+      }
+    },
+    "getTodoListByCategoryOKBody": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/TodoItemGroup"
+      },
+      "x-go-gen-location": "operations"
+    },
     "getTodoListOKBody": {
       "type": "array",
       "items": {
         "$ref": "#/definitions/TodoItem"
       },
       "x-go-gen-location": "operations"
+    },
+    "todoItemGroupTodoItemList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/TodoItem"
+      },
+      "x-go-gen-location": "models"
     }
   },
   "securityDefinitions": {
