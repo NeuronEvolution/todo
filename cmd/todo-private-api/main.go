@@ -33,6 +33,10 @@ func main() {
 		api.UpdateTodoHandler = operations.UpdateTodoHandlerFunc(h.UpdateTodo)
 		api.RemoveTodoHandler = operations.RemoveTodoHandlerFunc(h.RemoveTodo)
 		api.GetTodoListByCategoryHandler = operations.GetTodoListByCategoryHandlerFunc(h.GetTodoListByCategory)
+		api.GetUserProfileHandler = operations.GetUserProfileHandlerFunc(h.GetUserProfile)
+		api.UpdateUserProfileHandler = operations.UpdateUserProfileHandlerFunc(h.UpdateUserProfile)
+		api.GetFriendsListHandler = operations.GetFriendsListHandlerFunc(h.GetFriendsList)
+		api.GetFriendHandler = operations.GetFriendHandlerFunc(h.GetFriend)
 
 		return api.Serve(nil), nil
 	})

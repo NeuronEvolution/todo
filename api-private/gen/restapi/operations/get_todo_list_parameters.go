@@ -34,7 +34,7 @@ type GetTodoListParams struct {
 	/*
 	  In: query
 	*/
-	OtherUserID *string
+	FriendID *string
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -45,8 +45,8 @@ func (o *GetTodoListParams) BindRequest(r *http.Request, route *middleware.Match
 
 	qs := runtime.Values(r.URL.Query())
 
-	qOtherUserID, qhkOtherUserID, _ := qs.GetOK("otherUserId")
-	if err := o.bindOtherUserID(qOtherUserID, qhkOtherUserID, route.Formats); err != nil {
+	qFriendID, qhkFriendID, _ := qs.GetOK("friendID")
+	if err := o.bindFriendID(qFriendID, qhkFriendID, route.Formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -56,7 +56,7 @@ func (o *GetTodoListParams) BindRequest(r *http.Request, route *middleware.Match
 	return nil
 }
 
-func (o *GetTodoListParams) bindOtherUserID(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *GetTodoListParams) bindFriendID(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
@@ -65,7 +65,7 @@ func (o *GetTodoListParams) bindOtherUserID(rawData []string, hasKey bool, forma
 		return nil
 	}
 
-	o.OtherUserID = &raw
+	o.FriendID = &raw
 
 	return nil
 }

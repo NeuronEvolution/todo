@@ -555,9 +555,451 @@ func (dao *TodoDao) GetQuery() *TodoQuery {
 	return NewTodoQuery(dao)
 }
 
+const USER_PROFILE_TABLE_NAME = "user_profile"
+
+type USER_PROFILE_FIELD string
+
+const USER_PROFILE_FIELD_ID = USER_PROFILE_FIELD("id")
+const USER_PROFILE_FIELD_CREATE_TIME = USER_PROFILE_FIELD("create_time")
+const USER_PROFILE_FIELD_UPDATE_TIME = USER_PROFILE_FIELD("update_time")
+const USER_PROFILE_FIELD_UPDATE_VERSION = USER_PROFILE_FIELD("update_version")
+const USER_PROFILE_FIELD_USER_ID = USER_PROFILE_FIELD("user_id")
+const USER_PROFILE_FIELD_USER_NAME = USER_PROFILE_FIELD("user_name")
+const USER_PROFILE_FIELD_TODO_PUBLIC_VISIBLE = USER_PROFILE_FIELD("todo_public_visible")
+
+const USER_PROFILE_ALL_FIELDS_STRING = "id,create_time,update_time,update_version,user_id,user_name,todo_public_visible"
+
+var USER_PROFILE_ALL_FIELDS = []string{
+	"id",
+	"create_time",
+	"update_time",
+	"update_version",
+	"user_id",
+	"user_name",
+	"todo_public_visible",
+}
+
+type UserProfile struct {
+	Id                int64 //size=20
+	CreateTime        time.Time
+	UpdateTime        time.Time
+	UpdateVersion     int64  //size=20
+	UserId            string //size=128
+	UserName          string //size=128
+	TodoPublicVisible int32  //size=11
+}
+
+type UserProfileQuery struct {
+	BaseQuery
+	dao *UserProfileDao
+}
+
+func NewUserProfileQuery(dao *UserProfileDao) *UserProfileQuery {
+	q := &UserProfileQuery{}
+	q.dao = dao
+
+	return q
+}
+
+func (q *UserProfileQuery) QueryOne(ctx context.Context, tx *wrap.Tx) (*UserProfile, error) {
+	return q.dao.QueryOne(ctx, tx, q.buildQueryString())
+}
+
+func (q *UserProfileQuery) QueryList(ctx context.Context, tx *wrap.Tx) (list []*UserProfile, err error) {
+	return q.dao.QueryList(ctx, tx, q.buildQueryString())
+}
+
+func (q *UserProfileQuery) QueryCount(ctx context.Context, tx *wrap.Tx) (count int64, err error) {
+	return q.dao.QueryCount(ctx, tx, q.buildQueryString())
+}
+
+func (q *UserProfileQuery) QueryGroupBy(ctx context.Context, tx *wrap.Tx) (rows *wrap.Rows, err error) {
+	return q.dao.QueryGroupBy(ctx, tx, q.groupByFields, q.buildQueryString())
+}
+
+func (q *UserProfileQuery) ForUpdate() *UserProfileQuery {
+	q.forUpdate = true
+	return q
+}
+
+func (q *UserProfileQuery) ForShare() *UserProfileQuery {
+	q.forShare = true
+	return q
+}
+
+func (q *UserProfileQuery) GroupBy(fields ...USER_PROFILE_FIELD) *UserProfileQuery {
+	q.groupByFields = make([]string, len(fields))
+	for i, v := range fields {
+		q.groupByFields[i] = string(v)
+	}
+	return q
+}
+
+func (q *UserProfileQuery) Limit(startIncluded int64, count int64) *UserProfileQuery {
+	q.limit = fmt.Sprintf(" limit %d,%d", startIncluded, count)
+	return q
+}
+
+func (q *UserProfileQuery) OrderBy(fieldName USER_PROFILE_FIELD, asc bool) *UserProfileQuery {
+	if q.order != "" {
+		q.order += ","
+	}
+	q.order += string(fieldName) + " "
+	if asc {
+		q.order += "asc"
+	} else {
+		q.order += "desc"
+	}
+
+	return q
+}
+
+func (q *UserProfileQuery) OrderByGroupCount(asc bool) *UserProfileQuery {
+	if q.order != "" {
+		q.order += ","
+	}
+	q.order += "count(1) "
+	if asc {
+		q.order += "asc"
+	} else {
+		q.order += "desc"
+	}
+
+	return q
+}
+
+func (q *UserProfileQuery) w(format string, a ...interface{}) *UserProfileQuery {
+	q.where += fmt.Sprintf(format, a...)
+	return q
+}
+
+func (q *UserProfileQuery) Left() *UserProfileQuery  { return q.w(" ( ") }
+func (q *UserProfileQuery) Right() *UserProfileQuery { return q.w(" ) ") }
+func (q *UserProfileQuery) And() *UserProfileQuery   { return q.w(" AND ") }
+func (q *UserProfileQuery) Or() *UserProfileQuery    { return q.w(" OR ") }
+func (q *UserProfileQuery) Not() *UserProfileQuery   { return q.w(" NOT ") }
+
+func (q *UserProfileQuery) Id_Equal(v int64) *UserProfileQuery { return q.w("id='" + fmt.Sprint(v) + "'") }
+func (q *UserProfileQuery) Id_NotEqual(v int64) *UserProfileQuery {
+	return q.w("id<>'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) Id_Less(v int64) *UserProfileQuery { return q.w("id<'" + fmt.Sprint(v) + "'") }
+func (q *UserProfileQuery) Id_LessEqual(v int64) *UserProfileQuery {
+	return q.w("id<='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) Id_Greater(v int64) *UserProfileQuery {
+	return q.w("id>'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) Id_GreaterEqual(v int64) *UserProfileQuery {
+	return q.w("id>='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) CreateTime_Equal(v time.Time) *UserProfileQuery {
+	return q.w("create_time='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) CreateTime_NotEqual(v time.Time) *UserProfileQuery {
+	return q.w("create_time<>'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) CreateTime_Less(v time.Time) *UserProfileQuery {
+	return q.w("create_time<'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) CreateTime_LessEqual(v time.Time) *UserProfileQuery {
+	return q.w("create_time<='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) CreateTime_Greater(v time.Time) *UserProfileQuery {
+	return q.w("create_time>'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) CreateTime_GreaterEqual(v time.Time) *UserProfileQuery {
+	return q.w("create_time>='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UpdateTime_Equal(v time.Time) *UserProfileQuery {
+	return q.w("update_time='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UpdateTime_NotEqual(v time.Time) *UserProfileQuery {
+	return q.w("update_time<>'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UpdateTime_Less(v time.Time) *UserProfileQuery {
+	return q.w("update_time<'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UpdateTime_LessEqual(v time.Time) *UserProfileQuery {
+	return q.w("update_time<='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UpdateTime_Greater(v time.Time) *UserProfileQuery {
+	return q.w("update_time>'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UpdateTime_GreaterEqual(v time.Time) *UserProfileQuery {
+	return q.w("update_time>='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UpdateVersion_Equal(v int64) *UserProfileQuery {
+	return q.w("update_version='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UpdateVersion_NotEqual(v int64) *UserProfileQuery {
+	return q.w("update_version<>'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UpdateVersion_Less(v int64) *UserProfileQuery {
+	return q.w("update_version<'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UpdateVersion_LessEqual(v int64) *UserProfileQuery {
+	return q.w("update_version<='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UpdateVersion_Greater(v int64) *UserProfileQuery {
+	return q.w("update_version>'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UpdateVersion_GreaterEqual(v int64) *UserProfileQuery {
+	return q.w("update_version>='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UserId_Equal(v string) *UserProfileQuery {
+	return q.w("user_id='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UserId_NotEqual(v string) *UserProfileQuery {
+	return q.w("user_id<>'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UserId_Less(v string) *UserProfileQuery {
+	return q.w("user_id<'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UserId_LessEqual(v string) *UserProfileQuery {
+	return q.w("user_id<='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UserId_Greater(v string) *UserProfileQuery {
+	return q.w("user_id>'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UserId_GreaterEqual(v string) *UserProfileQuery {
+	return q.w("user_id>='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UserName_Equal(v string) *UserProfileQuery {
+	return q.w("user_name='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UserName_NotEqual(v string) *UserProfileQuery {
+	return q.w("user_name<>'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UserName_Less(v string) *UserProfileQuery {
+	return q.w("user_name<'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UserName_LessEqual(v string) *UserProfileQuery {
+	return q.w("user_name<='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UserName_Greater(v string) *UserProfileQuery {
+	return q.w("user_name>'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) UserName_GreaterEqual(v string) *UserProfileQuery {
+	return q.w("user_name>='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) TodoPublicVisible_Equal(v int32) *UserProfileQuery {
+	return q.w("todo_public_visible='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) TodoPublicVisible_NotEqual(v int32) *UserProfileQuery {
+	return q.w("todo_public_visible<>'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) TodoPublicVisible_Less(v int32) *UserProfileQuery {
+	return q.w("todo_public_visible<'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) TodoPublicVisible_LessEqual(v int32) *UserProfileQuery {
+	return q.w("todo_public_visible<='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) TodoPublicVisible_Greater(v int32) *UserProfileQuery {
+	return q.w("todo_public_visible>'" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) TodoPublicVisible_GreaterEqual(v int32) *UserProfileQuery {
+	return q.w("todo_public_visible>='" + fmt.Sprint(v) + "'")
+}
+
+type UserProfileDao struct {
+	logger     *zap.Logger
+	db         *DB
+	insertStmt *wrap.Stmt
+	updateStmt *wrap.Stmt
+	deleteStmt *wrap.Stmt
+}
+
+func NewUserProfileDao(db *DB) (t *UserProfileDao, err error) {
+	t = &UserProfileDao{}
+	t.logger = log.TypedLogger(t)
+	t.db = db
+	err = t.init()
+	if err != nil {
+		return nil, err
+	}
+
+	return t, nil
+}
+
+func (dao *UserProfileDao) init() (err error) {
+	err = dao.prepareInsertStmt()
+	if err != nil {
+		return err
+	}
+
+	err = dao.prepareUpdateStmt()
+	if err != nil {
+		return err
+	}
+
+	err = dao.prepareDeleteStmt()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (dao *UserProfileDao) prepareInsertStmt() (err error) {
+	dao.insertStmt, err = dao.db.Prepare(context.Background(), "INSERT INTO user_profile (update_version,user_id,user_name,todo_public_visible) VALUES (?,?,?,?)")
+	return err
+}
+
+func (dao *UserProfileDao) prepareUpdateStmt() (err error) {
+	dao.updateStmt, err = dao.db.Prepare(context.Background(), "UPDATE user_profile SET update_version=update_version+1,user_id=?,user_name=?,todo_public_visible=? WHERE id=? AND update_version=?")
+	return err
+}
+
+func (dao *UserProfileDao) prepareDeleteStmt() (err error) {
+	dao.deleteStmt, err = dao.db.Prepare(context.Background(), "DELETE FROM user_profile WHERE id=?")
+	return err
+}
+
+func (dao *UserProfileDao) Insert(ctx context.Context, tx *wrap.Tx, e *UserProfile) (id int64, err error) {
+	stmt := dao.insertStmt
+	if tx != nil {
+		stmt = tx.Stmt(ctx, stmt)
+	}
+
+	result, err := stmt.Exec(ctx, e.UpdateVersion, e.UserId, e.UserName, e.TodoPublicVisible)
+	if err != nil {
+		return 0, err
+	}
+
+	id, err = result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+func (dao *UserProfileDao) Update(ctx context.Context, tx *wrap.Tx, e *UserProfile) (err error) {
+	stmt := dao.updateStmt
+	if tx != nil {
+		stmt = tx.Stmt(ctx, stmt)
+	}
+
+	_, err = stmt.Exec(ctx, e.UserId, e.UserName, e.TodoPublicVisible, e.Id, e.UpdateVersion)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (dao *UserProfileDao) Delete(ctx context.Context, tx *wrap.Tx, id int64) (err error) {
+	stmt := dao.deleteStmt
+	if tx != nil {
+		stmt = tx.Stmt(ctx, stmt)
+	}
+
+	_, err = stmt.Exec(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (dao *UserProfileDao) scanRow(row *wrap.Row) (*UserProfile, error) {
+	e := &UserProfile{}
+	err := row.Scan(&e.Id, &e.CreateTime, &e.UpdateTime, &e.UpdateVersion, &e.UserId, &e.UserName, &e.TodoPublicVisible)
+	if err != nil {
+		if err == wrap.ErrNoRows {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	return e, nil
+}
+
+func (dao *UserProfileDao) scanRows(rows *wrap.Rows) (list []*UserProfile, err error) {
+	list = make([]*UserProfile, 0)
+	for rows.Next() {
+		e := UserProfile{}
+		err = rows.Scan(&e.Id, &e.CreateTime, &e.UpdateTime, &e.UpdateVersion, &e.UserId, &e.UserName, &e.TodoPublicVisible)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, &e)
+	}
+	if rows.Err() != nil {
+		err = rows.Err()
+		return nil, err
+	}
+
+	return list, nil
+}
+
+func (dao *UserProfileDao) QueryOne(ctx context.Context, tx *wrap.Tx, query string) (*UserProfile, error) {
+	querySql := "SELECT " + USER_PROFILE_ALL_FIELDS_STRING + " FROM user_profile " + query
+	var row *wrap.Row
+	if tx == nil {
+		row = dao.db.QueryRow(ctx, querySql)
+	} else {
+		row = tx.QueryRow(ctx, querySql)
+	}
+	return dao.scanRow(row)
+}
+
+func (dao *UserProfileDao) QueryList(ctx context.Context, tx *wrap.Tx, query string) (list []*UserProfile, err error) {
+	querySql := "SELECT " + USER_PROFILE_ALL_FIELDS_STRING + " FROM user_profile " + query
+	var rows *wrap.Rows
+	if tx == nil {
+		rows, err = dao.db.Query(ctx, querySql)
+	} else {
+		rows, err = tx.Query(ctx, querySql)
+	}
+	if err != nil {
+		dao.logger.Error("sqlDriver", zap.Error(err))
+		return nil, err
+	}
+
+	return dao.scanRows(rows)
+}
+
+func (dao *UserProfileDao) QueryCount(ctx context.Context, tx *wrap.Tx, query string) (count int64, err error) {
+	querySql := "SELECT COUNT(1) FROM user_profile " + query
+	var row *wrap.Row
+	if tx == nil {
+		row = dao.db.QueryRow(ctx, querySql)
+	} else {
+		row = tx.QueryRow(ctx, querySql)
+	}
+	if err != nil {
+		dao.logger.Error("sqlDriver", zap.Error(err))
+		return 0, err
+	}
+
+	err = row.Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (dao *UserProfileDao) QueryGroupBy(ctx context.Context, tx *wrap.Tx, groupByFields []string, query string) (rows *wrap.Rows, err error) {
+	querySql := "SELECT " + strings.Join(groupByFields, ",") + ",count(1) FROM user_profile " + query
+	if tx == nil {
+		return dao.db.Query(ctx, querySql)
+	} else {
+		return tx.Query(ctx, querySql)
+	}
+}
+
+func (dao *UserProfileDao) GetQuery() *UserProfileQuery {
+	return NewUserProfileQuery(dao)
+}
+
 type DB struct {
 	wrap.DB
-	Todo *TodoDao
+	Todo        *TodoDao
+	UserProfile *UserProfileDao
 }
 
 func NewDB(connectionString string) (d *DB, err error) {
@@ -579,6 +1021,11 @@ func NewDB(connectionString string) (d *DB, err error) {
 	}
 
 	d.Todo, err = NewTodoDao(d)
+	if err != nil {
+		return nil, err
+	}
+
+	d.UserProfile, err = NewUserProfileDao(d)
 	if err != nil {
 		return nil, err
 	}

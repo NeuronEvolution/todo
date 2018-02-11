@@ -48,3 +48,37 @@ func ToTodo(p *models.TodoItem) (r *Todo) {
 
 	return r
 }
+
+func FromUserProfile(p *UserProfile) (r *models.UserProfile) {
+	if p == nil {
+		return nil
+	}
+
+	r = &models.UserProfile{}
+	r.UserID = p.UserId
+	r.UserName = p.UserName
+	if p.TodoPublicVisible == 0 {
+		r.TodoPublicVisible = true
+	} else {
+		r.TodoPublicVisible = false
+	}
+
+	return r
+}
+
+func ToUserProfile(p *models.UserProfile) (r *UserProfile) {
+	if p == nil {
+		return nil
+	}
+
+	r = &UserProfile{}
+	r.UserId = p.UserID
+	r.UserName = p.UserName
+	if p.TodoPublicVisible {
+		r.TodoPublicVisible = 1
+	} else {
+		r.TodoPublicVisible = 0
+	}
+
+	return r
+}

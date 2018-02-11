@@ -34,8 +34,8 @@ type TodoItem struct {
 	// todo Id
 	TodoID string `json:"todoId,omitempty"`
 
-	// user Id
-	UserID string `json:"userId,omitempty"`
+	// user ID
+	UserID string `json:"userID,omitempty"`
 }
 
 // Validate validates this todo item

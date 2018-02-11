@@ -39,6 +39,12 @@ func NewTodoPrivateAPI(spec *loads.Document) *TodoPrivateAPI {
 		AddTodoHandler: AddTodoHandlerFunc(func(params AddTodoParams, principal interface{}) middleware.Responder {
 			panic("operation AddTodo has not yet been implemented")
 		}),
+		GetFriendHandler: GetFriendHandlerFunc(func(params GetFriendParams, principal interface{}) middleware.Responder {
+			panic("operation GetFriend has not yet been implemented")
+		}),
+		GetFriendsListHandler: GetFriendsListHandlerFunc(func(params GetFriendsListParams, principal interface{}) middleware.Responder {
+			panic("operation GetFriendsList has not yet been implemented")
+		}),
 		GetTodoHandler: GetTodoHandlerFunc(func(params GetTodoParams, principal interface{}) middleware.Responder {
 			panic("operation GetTodo has not yet been implemented")
 		}),
@@ -48,11 +54,17 @@ func NewTodoPrivateAPI(spec *loads.Document) *TodoPrivateAPI {
 		GetTodoListByCategoryHandler: GetTodoListByCategoryHandlerFunc(func(params GetTodoListByCategoryParams, principal interface{}) middleware.Responder {
 			panic("operation GetTodoListByCategory has not yet been implemented")
 		}),
+		GetUserProfileHandler: GetUserProfileHandlerFunc(func(params GetUserProfileParams, principal interface{}) middleware.Responder {
+			panic("operation GetUserProfile has not yet been implemented")
+		}),
 		RemoveTodoHandler: RemoveTodoHandlerFunc(func(params RemoveTodoParams, principal interface{}) middleware.Responder {
 			panic("operation RemoveTodo has not yet been implemented")
 		}),
 		UpdateTodoHandler: UpdateTodoHandlerFunc(func(params UpdateTodoParams, principal interface{}) middleware.Responder {
 			panic("operation UpdateTodo has not yet been implemented")
+		}),
+		UpdateUserProfileHandler: UpdateUserProfileHandlerFunc(func(params UpdateUserProfileParams, principal interface{}) middleware.Responder {
+			panic("operation UpdateUserProfile has not yet been implemented")
 		}),
 
 		// Applies when the "Authorization" header is set
@@ -100,16 +112,24 @@ type TodoPrivateAPI struct {
 
 	// AddTodoHandler sets the operation handler for the add todo operation
 	AddTodoHandler AddTodoHandler
+	// GetFriendHandler sets the operation handler for the get friend operation
+	GetFriendHandler GetFriendHandler
+	// GetFriendsListHandler sets the operation handler for the get friends list operation
+	GetFriendsListHandler GetFriendsListHandler
 	// GetTodoHandler sets the operation handler for the get todo operation
 	GetTodoHandler GetTodoHandler
 	// GetTodoListHandler sets the operation handler for the get todo list operation
 	GetTodoListHandler GetTodoListHandler
 	// GetTodoListByCategoryHandler sets the operation handler for the get todo list by category operation
 	GetTodoListByCategoryHandler GetTodoListByCategoryHandler
+	// GetUserProfileHandler sets the operation handler for the get user profile operation
+	GetUserProfileHandler GetUserProfileHandler
 	// RemoveTodoHandler sets the operation handler for the remove todo operation
 	RemoveTodoHandler RemoveTodoHandler
 	// UpdateTodoHandler sets the operation handler for the update todo operation
 	UpdateTodoHandler UpdateTodoHandler
+	// UpdateUserProfileHandler sets the operation handler for the update user profile operation
+	UpdateUserProfileHandler UpdateUserProfileHandler
 
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
@@ -181,6 +201,14 @@ func (o *TodoPrivateAPI) Validate() error {
 		unregistered = append(unregistered, "AddTodoHandler")
 	}
 
+	if o.GetFriendHandler == nil {
+		unregistered = append(unregistered, "GetFriendHandler")
+	}
+
+	if o.GetFriendsListHandler == nil {
+		unregistered = append(unregistered, "GetFriendsListHandler")
+	}
+
 	if o.GetTodoHandler == nil {
 		unregistered = append(unregistered, "GetTodoHandler")
 	}
@@ -193,12 +221,20 @@ func (o *TodoPrivateAPI) Validate() error {
 		unregistered = append(unregistered, "GetTodoListByCategoryHandler")
 	}
 
+	if o.GetUserProfileHandler == nil {
+		unregistered = append(unregistered, "GetUserProfileHandler")
+	}
+
 	if o.RemoveTodoHandler == nil {
 		unregistered = append(unregistered, "RemoveTodoHandler")
 	}
 
 	if o.UpdateTodoHandler == nil {
 		unregistered = append(unregistered, "UpdateTodoHandler")
+	}
+
+	if o.UpdateUserProfileHandler == nil {
+		unregistered = append(unregistered, "UpdateUserProfileHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -309,6 +345,16 @@ func (o *TodoPrivateAPI) initHandlerCache() {
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
+	o.handlers["GET"]["/friends/{friendID}"] = NewGetFriend(o.context, o.GetFriendHandler)
+
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/friends"] = NewGetFriendsList(o.context, o.GetFriendsListHandler)
+
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
 	o.handlers["GET"]["/{todoId}"] = NewGetTodo(o.context, o.GetTodoHandler)
 
 	if o.handlers["GET"] == nil {
@@ -321,6 +367,11 @@ func (o *TodoPrivateAPI) initHandlerCache() {
 	}
 	o.handlers["GET"]["/listByCategory"] = NewGetTodoListByCategory(o.context, o.GetTodoListByCategoryHandler)
 
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/userProfile"] = NewGetUserProfile(o.context, o.GetUserProfileHandler)
+
 	if o.handlers["DELETE"] == nil {
 		o.handlers["DELETE"] = make(map[string]http.Handler)
 	}
@@ -330,6 +381,11 @@ func (o *TodoPrivateAPI) initHandlerCache() {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
 	o.handlers["POST"]["/{todoId}"] = NewUpdateTodo(o.context, o.UpdateTodoHandler)
+
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/userProfile"] = NewUpdateUserProfile(o.context, o.UpdateUserProfileHandler)
 
 }
 

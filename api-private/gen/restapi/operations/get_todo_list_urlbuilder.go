@@ -13,7 +13,7 @@ import (
 
 // GetTodoListURL generates an URL for the get todo list operation
 type GetTodoListURL struct {
-	OtherUserID *string
+	FriendID *string
 
 	_basePath string
 	// avoid unkeyed usage
@@ -49,12 +49,12 @@ func (o *GetTodoListURL) Build() (*url.URL, error) {
 
 	qs := make(url.Values)
 
-	var otherUserID string
-	if o.OtherUserID != nil {
-		otherUserID = *o.OtherUserID
+	var friendID string
+	if o.FriendID != nil {
+		friendID = *o.FriendID
 	}
-	if otherUserID != "" {
-		qs.Set("otherUserId", otherUserID)
+	if friendID != "" {
+		qs.Set("friendID", friendID)
 	}
 
 	result.RawQuery = qs.Encode()

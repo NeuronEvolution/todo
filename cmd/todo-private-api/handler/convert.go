@@ -74,3 +74,56 @@ func fromTodoItemGroupList(p []*models.TodoItemGroup) (r []*api.TodoItemGroup) {
 
 	return r
 }
+
+func fromUserProfile(p *models.UserProfile) (r *api.UserProfile) {
+	if p == nil {
+		return nil
+	}
+
+	r = &api.UserProfile{}
+	r.UserID = p.UserID
+	r.UserName = p.UserName
+	r.TodoPublicVisible = p.TodoPublicVisible
+
+	return r
+}
+
+func toUserProfile(p *api.UserProfile) (r *models.UserProfile) {
+	if p == nil {
+		return nil
+	}
+
+	r = &models.UserProfile{}
+	r.UserID = p.UserID
+	r.UserName = p.UserName
+	r.TodoPublicVisible = p.TodoPublicVisible
+
+	return r
+}
+
+func fromFriendInfo(p *models.FriendInfo) (r *api.FriendInfo) {
+	if p == nil {
+		return nil
+	}
+
+	r = &api.FriendInfo{}
+	r.UserID = p.UserID
+	r.UserName = p.UserName
+	r.TodoPublicVisible = p.TodoPublicVisible
+	r.TodoCount = p.TodoCount
+
+	return r
+}
+
+func fromFriendInfoList(p []*models.FriendInfo) (r []*api.FriendInfo) {
+	if p == nil {
+		return nil
+	}
+
+	r = make([]*api.FriendInfo, len(p))
+	for i, v := range p {
+		r[i] = fromFriendInfo(v)
+	}
+
+	return r
+}

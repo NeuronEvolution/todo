@@ -45,7 +45,7 @@ func init() {
         "parameters": [
           {
             "type": "string",
-            "name": "otherUserId",
+            "name": "friendID",
             "in": "query"
           }
         ],
@@ -88,6 +88,63 @@ func init() {
         }
       }
     },
+    "/friends": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "operationId": "GetFriendsList",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "pageToken",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "$ref": "#/definitions/FriendInfoList"
+            }
+          }
+        }
+      }
+    },
+    "/friends/{friendID}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "operationId": "GetFriend",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "friendID",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "$ref": "#/definitions/FriendInfo"
+            }
+          }
+        }
+      }
+    },
     "/listByCategory": {
       "get": {
         "security": [
@@ -99,7 +156,7 @@ func init() {
         "parameters": [
           {
             "type": "string",
-            "name": "otherUserId",
+            "name": "friendID",
             "in": "query"
           }
         ],
@@ -112,6 +169,46 @@ func init() {
                 "$ref": "#/definitions/TodoItemGroup"
               }
             }
+          }
+        }
+      }
+    },
+    "/userProfile": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "operationId": "GetUserProfile",
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "$ref": "#/definitions/UserProfile"
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "operationId": "UpdateUserProfile",
+        "parameters": [
+          {
+            "name": "userProfile",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/UserProfile"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
           }
         }
       }
@@ -180,6 +277,38 @@ func init() {
     }
   },
   "definitions": {
+    "FriendInfo": {
+      "type": "object",
+      "properties": {
+        "todoCount": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "todoPublicVisible": {
+          "type": "boolean"
+        },
+        "userID": {
+          "type": "string"
+        },
+        "userName": {
+          "type": "string"
+        }
+      }
+    },
+    "FriendInfoList": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FriendInfo"
+          }
+        },
+        "nextPageToken": {
+          "type": "string"
+        }
+      }
+    },
     "TodoItem": {
       "type": "object",
       "properties": {
@@ -202,7 +331,7 @@ func init() {
         "todoId": {
           "type": "string"
         },
-        "userId": {
+        "userID": {
           "type": "string"
         }
       }
@@ -218,6 +347,20 @@ func init() {
           "items": {
             "$ref": "#/definitions/TodoItem"
           }
+        }
+      }
+    },
+    "UserProfile": {
+      "type": "object",
+      "properties": {
+        "todoPublicVisible": {
+          "type": "boolean"
+        },
+        "userID": {
+          "type": "string"
+        },
+        "userName": {
+          "type": "string"
         }
       }
     }
@@ -265,7 +408,7 @@ func init() {
         "parameters": [
           {
             "type": "string",
-            "name": "otherUserId",
+            "name": "friendID",
             "in": "query"
           }
         ],
@@ -305,6 +448,63 @@ func init() {
         }
       }
     },
+    "/friends": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "operationId": "GetFriendsList",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "pageToken",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "$ref": "#/definitions/FriendInfoList"
+            }
+          }
+        }
+      }
+    },
+    "/friends/{friendID}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "operationId": "GetFriend",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "friendID",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "$ref": "#/definitions/FriendInfo"
+            }
+          }
+        }
+      }
+    },
     "/listByCategory": {
       "get": {
         "security": [
@@ -316,7 +516,7 @@ func init() {
         "parameters": [
           {
             "type": "string",
-            "name": "otherUserId",
+            "name": "friendID",
             "in": "query"
           }
         ],
@@ -326,6 +526,46 @@ func init() {
             "schema": {
               "$ref": "#/definitions/getTodoListByCategoryOKBody"
             }
+          }
+        }
+      }
+    },
+    "/userProfile": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "operationId": "GetUserProfile",
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "$ref": "#/definitions/UserProfile"
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "operationId": "UpdateUserProfile",
+        "parameters": [
+          {
+            "name": "userProfile",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/UserProfile"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
           }
         }
       }
@@ -394,6 +634,35 @@ func init() {
     }
   },
   "definitions": {
+    "FriendInfo": {
+      "type": "object",
+      "properties": {
+        "todoCount": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "todoPublicVisible": {
+          "type": "boolean"
+        },
+        "userID": {
+          "type": "string"
+        },
+        "userName": {
+          "type": "string"
+        }
+      }
+    },
+    "FriendInfoList": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "$ref": "#/definitions/friendInfoListItems"
+        },
+        "nextPageToken": {
+          "type": "string"
+        }
+      }
+    },
     "TodoItem": {
       "type": "object",
       "properties": {
@@ -416,7 +685,7 @@ func init() {
         "todoId": {
           "type": "string"
         },
-        "userId": {
+        "userID": {
           "type": "string"
         }
       }
@@ -431,6 +700,27 @@ func init() {
           "$ref": "#/definitions/todoItemGroupTodoItemList"
         }
       }
+    },
+    "UserProfile": {
+      "type": "object",
+      "properties": {
+        "todoPublicVisible": {
+          "type": "boolean"
+        },
+        "userID": {
+          "type": "string"
+        },
+        "userName": {
+          "type": "string"
+        }
+      }
+    },
+    "friendInfoListItems": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/FriendInfo"
+      },
+      "x-go-gen-location": "models"
     },
     "getTodoListByCategoryOKBody": {
       "type": "array",
