@@ -38,7 +38,7 @@ func (s *TodoService) GetTodo(ctx context.Context, userId string, todoId string)
 
 func (s *TodoService) AddTodo(ctx context.Context, userId string, todoItem *models.TodoItem) (todoId string, err error) {
 	if todoItem.Title == "" {
-		return "", errors.InvalidParam("Title", "标题不能为空")
+		return "", errors.InvalidParam("标题不能为空")
 	}
 
 	dbTodo := todo_db.ToTodo(todoItem)

@@ -41,6 +41,8 @@ type UpdateTodo struct {
 }
 
 func (o *UpdateTodo) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	zap.L().Named("api").Info("UpdateTodo")
+
 	route, rCtx, _ := o.Context.RouteInfo(r)
 	if rCtx != nil {
 		r = rCtx
@@ -49,6 +51,7 @@ func (o *UpdateTodo) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	uprinc, aCtx, err := o.Context.Authorize(r, route)
 	if err != nil {
+		zap.L().Named("api").Info("UpdateTodo", zap.Error(err))
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
@@ -61,6 +64,7 @@ func (o *UpdateTodo) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
+		zap.L().Named("api").Info("UpdateTodo", zap.Error(err))
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}

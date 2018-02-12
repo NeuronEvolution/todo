@@ -14,7 +14,7 @@ func (s *TodoService) GetFriendsList(ctx context.Context, userID string, query *
 	if query.PageToken != "" {
 		limitStart, err = strconv.ParseInt(query.PageToken, 10, 64)
 		if err != nil {
-			return nil, "", errors.InvalidParam("PageToken", "invalid PageToken")
+			return nil, "", errors.InvalidParam("invalid PageToken")
 		}
 	}
 	limitCount := query.PageSize
