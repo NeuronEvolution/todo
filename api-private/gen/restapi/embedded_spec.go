@@ -323,7 +323,7 @@ func init() {
           "format": "int32"
         },
         "status": {
-          "type": "string"
+          "$ref": "#/definitions/TodoStatus"
         },
         "title": {
           "type": "string"
@@ -349,6 +349,14 @@ func init() {
           }
         }
       }
+    },
+    "TodoStatus": {
+      "type": "string",
+      "enum": [
+        "ongoing",
+        "completed",
+        "discard"
+      ]
     },
     "UserProfile": {
       "type": "object",
@@ -677,7 +685,7 @@ func init() {
           "format": "int32"
         },
         "status": {
-          "type": "string"
+          "$ref": "#/definitions/TodoStatus"
         },
         "title": {
           "type": "string"
@@ -700,6 +708,14 @@ func init() {
           "$ref": "#/definitions/todoItemGroupTodoItemList"
         }
       }
+    },
+    "TodoStatus": {
+      "type": "string",
+      "enum": [
+        "ongoing",
+        "completed",
+        "discard"
+      ]
     },
     "UserProfile": {
       "type": "object",

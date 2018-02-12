@@ -1,12 +1,20 @@
 package models
 
+type TodoStatus string
+
+const (
+	TodoStatusOngoing   TodoStatus = "ongoing"
+	TodoStatusCompleted TodoStatus = "completed"
+	TodoStatusDiscard   TodoStatus = "discard"
+)
+
 type TodoItem struct {
 	TodoID   string
 	UserID   string
 	Category string
 	Title    string
 	Desc     string
-	Status   string
+	Status   TodoStatus
 	Priority int32
 }
 

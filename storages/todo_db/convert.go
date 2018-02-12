@@ -13,7 +13,7 @@ func FromTodo(p *Todo) (r *models.TodoItem) {
 	r.Category = p.TodoCategory
 	r.Title = p.TodoTitle
 	r.Desc = p.TodoDesc
-	r.Status = p.TodoStatus
+	r.Status = models.TodoStatus(p.TodoStatus)
 	r.Priority = p.TodoPriority
 
 	return r
@@ -43,7 +43,7 @@ func ToTodo(p *models.TodoItem) (r *Todo) {
 	r.TodoCategory = p.Category
 	r.TodoTitle = p.Title
 	r.TodoDesc = p.Desc
-	r.TodoStatus = p.Status
+	r.TodoStatus = string(p.Status)
 	r.TodoPriority = int32(p.Priority)
 
 	return r

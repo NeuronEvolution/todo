@@ -1,7 +1,23 @@
 package handler
 
 import "github.com/NeuronEvolution/todo/models"
-import api "github.com/NeuronEvolution/todo/api-private/gen/models"
+import (
+	"fmt"
+	api "github.com/NeuronEvolution/todo/api-private/gen/models"
+)
+
+func fromTodoStatus(p models.TodoStatus) (r api.TodoStatus) {
+	switch p {
+	case models.TodoStatusOngoing:
+		return api.TodoStatusOngoing
+	case models.TodoStatusCompleted:
+		return api.TodoStatusCompleted
+	case models.TodoStatusDiscard:
+		return api.TodoStatusDiscard
+	default:
+		panic(fmt.Errorf("fromTodoStatus unknown %v", p))
+	}
+}
 
 func fromTodoItem(p *models.TodoItem) (r *api.TodoItem) {
 	if p == nil {
@@ -14,7 +30,7 @@ func fromTodoItem(p *models.TodoItem) (r *api.TodoItem) {
 	r.Category = p.Category
 	r.Title = p.Title
 	r.Desc = p.Desc
-	r.Status = p.Status
+	r.Status = fromTodoStatus(p.Status)
 	r.Priority = p.Priority
 
 	return r
@@ -33,6 +49,19 @@ func fromTodoItemList(p []*models.TodoItem) (r []*api.TodoItem) {
 	return r
 }
 
+func toTodoStatus(p api.TodoStatus) (r models.TodoStatus) {
+	switch p {
+	case api.TodoStatusOngoing:
+		return models.TodoStatusOngoing
+	case api.TodoStatusCompleted:
+		return models.TodoStatusCompleted
+	case api.TodoStatusDiscard:
+		return models.TodoStatusDiscard
+	default:
+		panic(fmt.Errorf("toTodoStatus unknown %v", p))
+	}
+}
+
 func toTodoItem(p *api.TodoItem) (r *models.TodoItem) {
 	if p == nil {
 		return nil
@@ -44,7 +73,7 @@ func toTodoItem(p *api.TodoItem) (r *models.TodoItem) {
 	r.Category = p.Category
 	r.Title = p.Title
 	r.Desc = p.Desc
-	r.Status = p.Status
+	r.Status = toTodoStatus(p.Status)
 	r.Priority = p.Priority
 
 	return r

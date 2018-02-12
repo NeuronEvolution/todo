@@ -44,6 +44,7 @@ func (s *TodoService) AddTodo(ctx context.Context, userId string, todoItem *mode
 	dbTodo := todo_db.ToTodo(todoItem)
 	dbTodo.UserId = userId
 	dbTodo.TodoId = rand.NextHex(16)
+	dbTodo.TodoStatus = string(models.TodoStatusOngoing)
 	_, err = s.todoDB.Todo.Insert(ctx, nil, dbTodo)
 	if err != nil {
 		return "", err
@@ -67,7 +68,7 @@ func (s *TodoService) UpdateTodo(ctx context.Context, userId string, todoItem *m
 	dbTodo.TodoTitle = todoItem.Title
 	dbTodo.TodoDesc = todoItem.Desc
 	dbTodo.TodoPriority = todoItem.Priority
-	dbTodo.TodoStatus = todoItem.Status
+	dbTodo.TodoStatus = string(todoItem.Status)
 	err = s.todoDB.Todo.Update(ctx, nil, dbTodo)
 	if err != nil {
 		return err

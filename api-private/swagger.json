@@ -322,7 +322,7 @@
           "type": "string"
         },
         "status": {
-          "type": "string"
+          "$ref": "#/definitions/TodoStatus"
         },
         "priority": {
           "type": "integer",
@@ -389,6 +389,14 @@
           }
         }
       }
+    },
+    "TodoStatus":{
+      "type": "string",
+      "enum": [
+        "ongoing",
+        "completed",
+        "discard"
+      ]
     }
   }
 }

@@ -26,7 +26,7 @@ type TodoItem struct {
 	Priority int32 `json:"priority,omitempty"`
 
 	// status
-	Status string `json:"status,omitempty"`
+	Status TodoStatus `json:"status,omitempty"`
 
 	// title
 	Title string `json:"title,omitempty"`
@@ -42,9 +42,30 @@ type TodoItem struct {
 func (m *TodoItem) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateStatus(formats); err != nil {
+		// prop
+		res = append(res, err)
+	}
+
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *TodoItem) validateStatus(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Status) { // not required
+		return nil
+	}
+
+	if err := m.Status.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("status")
+		}
+		return err
+	}
+
 	return nil
 }
 
