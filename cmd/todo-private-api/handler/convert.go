@@ -79,6 +79,21 @@ func toTodoItem(p *api.TodoItem) (r *models.TodoItem) {
 	return r
 }
 
+func toTodoItemMutate(p *api.TodoItemMutate) (r *models.TodoItemMutate) {
+	if p == nil {
+		return nil
+	}
+
+	r = &models.TodoItemMutate{}
+	r.Category = p.Category
+	r.Title = p.Title
+	r.Desc = p.Desc
+	r.Status = toTodoStatus(p.Status)
+	r.Priority = p.Priority
+
+	return r
+}
+
 func fromTodoItemGroup(p *models.TodoItemGroup) (r *api.TodoItemGroup) {
 	if p == nil {
 		return nil
@@ -104,6 +119,32 @@ func fromTodoItemGroupList(p []*models.TodoItemGroup) (r []*api.TodoItemGroup) {
 	return r
 }
 
+func fromTodoVisibility(p models.TodoVisibility)(r api.TodoVisibility) {
+	switch p {
+	case models.TodoVisibilityPrivate:
+		return api.TodoVisibilityPrivate
+	case models.TodoVisibilityFriend:
+		return api.TodoVisibilityFriend
+	case models.TodoVisibilityPublic:
+		return api.TodoVisibilityPublic
+	default:
+		panic("unknown TodoVisibility:" + p)
+	}
+}
+
+func toTodoVisibility(p api.TodoVisibility)(r models.TodoVisibility) {
+	switch p {
+	case api.TodoVisibilityPrivate:
+		return models.TodoVisibilityPrivate
+	case api.TodoVisibilityFriend:
+		return models.TodoVisibilityFriend
+	case api.TodoVisibilityPublic:
+		return models.TodoVisibilityPublic
+	default:
+		panic("unknown TodoVisibility:" + p)
+	}
+}
+
 func fromUserProfile(p *models.UserProfile) (r *api.UserProfile) {
 	if p == nil {
 		return nil
@@ -112,7 +153,7 @@ func fromUserProfile(p *models.UserProfile) (r *api.UserProfile) {
 	r = &api.UserProfile{}
 	r.UserID = p.UserID
 	r.UserName = p.UserName
-	r.TodoPublicVisible = p.TodoPublicVisible
+	r.TodoVisibility = fromTodoVisibility(p.TodoVisibility)
 
 	return r
 }
@@ -125,7 +166,7 @@ func toUserProfile(p *api.UserProfile) (r *models.UserProfile) {
 	r = &models.UserProfile{}
 	r.UserID = p.UserID
 	r.UserName = p.UserName
-	r.TodoPublicVisible = p.TodoPublicVisible
+	r.TodoVisibility = toTodoVisibility( p.TodoVisibility)
 
 	return r
 }
@@ -138,7 +179,7 @@ func fromFriendInfo(p *models.FriendInfo) (r *api.FriendInfo) {
 	r = &api.FriendInfo{}
 	r.UserID = p.UserID
 	r.UserName = p.UserName
-	r.TodoPublicVisible = p.TodoPublicVisible
+	r.TodoVisibility = fromTodoVisibility(p.TodoVisibility)
 	r.TodoCount = p.TodoCount
 
 	return r

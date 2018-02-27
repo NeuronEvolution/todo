@@ -14,7 +14,7 @@ type TodoService struct {
 func New() (s *TodoService, err error) {
 	s = &TodoService{}
 	s.logger = log.TypedLogger(s)
-	s.todoDB, err = todo_db.NewDB("root:123456@tcp(127.0.0.1:3307)/todo?parseTime=true")
+	s.todoDB, err = todo_db.NewDB()
 	if err != nil {
 		return nil, err
 	}

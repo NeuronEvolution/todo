@@ -7,13 +7,9 @@ import (
 	"github.com/NeuronFramework/restful"
 	"github.com/go-openapi/loads"
 	"net/http"
-	"os"
 )
 
 func main() {
-	os.Setenv("DEBUG", "true")
-	os.Setenv("PORT", "9001")
-
 	restful.Run(func() (http.Handler, error) {
 		h, err := handler.New()
 		if err != nil {
@@ -37,6 +33,7 @@ func main() {
 		api.UpdateUserProfileHandler = operations.UpdateUserProfileHandlerFunc(h.UpdateUserProfile)
 		api.GetFriendsListHandler = operations.GetFriendsListHandlerFunc(h.GetFriendsList)
 		api.GetFriendHandler = operations.GetFriendHandlerFunc(h.GetFriend)
+		api.GetCategoryNameListHandler=operations.GetCategoryNameListHandlerFunc(h.GetCategoryNameList)
 
 		return api.Serve(nil), nil
 	})

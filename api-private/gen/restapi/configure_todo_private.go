@@ -50,6 +50,9 @@ func configureAPI(api *operations.TodoPrivateAPI) http.Handler {
 	api.AddTodoHandler = operations.AddTodoHandlerFunc(func(params operations.AddTodoParams, principal interface{}) middleware.Responder {
 		panic("operation .AddTodo has not yet been implemented")
 	})
+	api.GetCategoryNameListHandler = operations.GetCategoryNameListHandlerFunc(func(params operations.GetCategoryNameListParams, principal interface{}) middleware.Responder {
+		panic("operation .GetCategoryNameList has not yet been implemented")
+	})
 	api.GetFriendHandler = operations.GetFriendHandlerFunc(func(params operations.GetFriendParams, principal interface{}) middleware.Responder {
 		panic("operation .GetFriend has not yet been implemented")
 	})
@@ -76,6 +79,12 @@ func configureAPI(api *operations.TodoPrivateAPI) http.Handler {
 	})
 	api.UpdateUserProfileHandler = operations.UpdateUserProfileHandlerFunc(func(params operations.UpdateUserProfileParams, principal interface{}) middleware.Responder {
 		panic("operation .UpdateUserProfile has not yet been implemented")
+	})
+	api.UpdateUserProfileTodoVisibilityHandler = operations.UpdateUserProfileTodoVisibilityHandlerFunc(func(params operations.UpdateUserProfileTodoVisibilityParams, principal interface{}) middleware.Responder {
+		panic("operation .UpdateUserProfileTodoVisibility has not yet been implemented")
+	})
+	api.UpdateUserProfileUserNameHandler = operations.UpdateUserProfileUserNameHandlerFunc(func(params operations.UpdateUserProfileUserNameParams, principal interface{}) middleware.Responder {
+		panic("operation .UpdateUserProfileUserName has not yet been implemented")
 	})
 
 	api.ServerShutdown = func() {}

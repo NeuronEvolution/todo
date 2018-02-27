@@ -37,10 +37,6 @@ func (s *TodoService) GetTodo(ctx context.Context, userId string, todoId string)
 }
 
 func (s *TodoService) AddTodo(ctx context.Context, userId string, todoItem *models.TodoItem) (todoId string, err error) {
-	if todoItem.Title == "" {
-		return "", errors.InvalidParam("标题不能为空")
-	}
-
 	dbTodo := todo_db.ToTodo(todoItem)
 	dbTodo.UserId = userId
 	dbTodo.TodoId = rand.NextHex(16)
@@ -53,9 +49,9 @@ func (s *TodoService) AddTodo(ctx context.Context, userId string, todoItem *mode
 	return dbTodo.TodoId, nil
 }
 
-func (s *TodoService) UpdateTodo(ctx context.Context, userId string, todoItem *models.TodoItem) error {
+func (s *TodoService) UpdateTodo(ctx context.Context, userId string, todoID string, todoItemMutate *models.TodoItemMutate) error {
 	dbTodo, err := s.todoDB.Todo.GetQuery().
-		UserId_Equal(userId).And().TodoId_Equal(todoItem.TodoID).
+		UserId_Equal(userId).And().TodoId_Equal(todoID).
 		QueryOne(ctx, nil)
 	if err != nil {
 		return err
@@ -65,10 +61,12 @@ func (s *TodoService) UpdateTodo(ctx context.Context, userId string, todoItem *m
 		return errors.NotFound("todo not exists")
 	}
 
-	dbTodo.TodoTitle = todoItem.Title
-	dbTodo.TodoDesc = todoItem.Desc
-	dbTodo.TodoPriority = todoItem.Priority
-	dbTodo.TodoStatus = string(todoItem.Status)
+	dbTodo.TodoCategory = todoItemMutate.Category
+	dbTodo.TodoTitle = todoItemMutate.Title
+	dbTodo.TodoDesc = todoItemMutate.Desc
+	dbTodo.TodoStatus = string(todoItemMutate.Status)
+	dbTodo.TodoPriority = todoItemMutate.Priority
+
 	err = s.todoDB.Todo.Update(ctx, nil, dbTodo)
 	if err != nil {
 		return err

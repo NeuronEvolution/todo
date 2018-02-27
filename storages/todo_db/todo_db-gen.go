@@ -9,6 +9,7 @@ import (
 	"github.com/NeuronFramework/sql/wrap"
 	"github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
+	"os"
 	"strings"
 	"time"
 )
@@ -565,9 +566,9 @@ const USER_PROFILE_FIELD_UPDATE_TIME = USER_PROFILE_FIELD("update_time")
 const USER_PROFILE_FIELD_UPDATE_VERSION = USER_PROFILE_FIELD("update_version")
 const USER_PROFILE_FIELD_USER_ID = USER_PROFILE_FIELD("user_id")
 const USER_PROFILE_FIELD_USER_NAME = USER_PROFILE_FIELD("user_name")
-const USER_PROFILE_FIELD_TODO_PUBLIC_VISIBLE = USER_PROFILE_FIELD("todo_public_visible")
+const USER_PROFILE_FIELD_TODO_VISIBILITY = USER_PROFILE_FIELD("todo_visibility")
 
-const USER_PROFILE_ALL_FIELDS_STRING = "id,create_time,update_time,update_version,user_id,user_name,todo_public_visible"
+const USER_PROFILE_ALL_FIELDS_STRING = "id,create_time,update_time,update_version,user_id,user_name,todo_visibility"
 
 var USER_PROFILE_ALL_FIELDS = []string{
 	"id",
@@ -576,17 +577,17 @@ var USER_PROFILE_ALL_FIELDS = []string{
 	"update_version",
 	"user_id",
 	"user_name",
-	"todo_public_visible",
+	"todo_visibility",
 }
 
 type UserProfile struct {
-	Id                int64 //size=20
-	CreateTime        time.Time
-	UpdateTime        time.Time
-	UpdateVersion     int64  //size=20
-	UserId            string //size=128
-	UserName          string //size=128
-	TodoPublicVisible int32  //size=11
+	Id             int64 //size=20
+	CreateTime     time.Time
+	UpdateTime     time.Time
+	UpdateVersion  int64  //size=20
+	UserId         string //size=128
+	UserName       string //size=128
+	TodoVisibility string //size=32
 }
 
 type UserProfileQuery struct {
@@ -783,23 +784,23 @@ func (q *UserProfileQuery) UserName_Greater(v string) *UserProfileQuery {
 func (q *UserProfileQuery) UserName_GreaterEqual(v string) *UserProfileQuery {
 	return q.w("user_name>='" + fmt.Sprint(v) + "'")
 }
-func (q *UserProfileQuery) TodoPublicVisible_Equal(v int32) *UserProfileQuery {
-	return q.w("todo_public_visible='" + fmt.Sprint(v) + "'")
+func (q *UserProfileQuery) TodoVisibility_Equal(v string) *UserProfileQuery {
+	return q.w("todo_visibility='" + fmt.Sprint(v) + "'")
 }
-func (q *UserProfileQuery) TodoPublicVisible_NotEqual(v int32) *UserProfileQuery {
-	return q.w("todo_public_visible<>'" + fmt.Sprint(v) + "'")
+func (q *UserProfileQuery) TodoVisibility_NotEqual(v string) *UserProfileQuery {
+	return q.w("todo_visibility<>'" + fmt.Sprint(v) + "'")
 }
-func (q *UserProfileQuery) TodoPublicVisible_Less(v int32) *UserProfileQuery {
-	return q.w("todo_public_visible<'" + fmt.Sprint(v) + "'")
+func (q *UserProfileQuery) TodoVisibility_Less(v string) *UserProfileQuery {
+	return q.w("todo_visibility<'" + fmt.Sprint(v) + "'")
 }
-func (q *UserProfileQuery) TodoPublicVisible_LessEqual(v int32) *UserProfileQuery {
-	return q.w("todo_public_visible<='" + fmt.Sprint(v) + "'")
+func (q *UserProfileQuery) TodoVisibility_LessEqual(v string) *UserProfileQuery {
+	return q.w("todo_visibility<='" + fmt.Sprint(v) + "'")
 }
-func (q *UserProfileQuery) TodoPublicVisible_Greater(v int32) *UserProfileQuery {
-	return q.w("todo_public_visible>'" + fmt.Sprint(v) + "'")
+func (q *UserProfileQuery) TodoVisibility_Greater(v string) *UserProfileQuery {
+	return q.w("todo_visibility>'" + fmt.Sprint(v) + "'")
 }
-func (q *UserProfileQuery) TodoPublicVisible_GreaterEqual(v int32) *UserProfileQuery {
-	return q.w("todo_public_visible>='" + fmt.Sprint(v) + "'")
+func (q *UserProfileQuery) TodoVisibility_GreaterEqual(v string) *UserProfileQuery {
+	return q.w("todo_visibility>='" + fmt.Sprint(v) + "'")
 }
 
 type UserProfileDao struct {
@@ -842,12 +843,12 @@ func (dao *UserProfileDao) init() (err error) {
 }
 
 func (dao *UserProfileDao) prepareInsertStmt() (err error) {
-	dao.insertStmt, err = dao.db.Prepare(context.Background(), "INSERT INTO user_profile (update_version,user_id,user_name,todo_public_visible) VALUES (?,?,?,?)")
+	dao.insertStmt, err = dao.db.Prepare(context.Background(), "INSERT INTO user_profile (update_version,user_id,user_name,todo_visibility) VALUES (?,?,?,?)")
 	return err
 }
 
 func (dao *UserProfileDao) prepareUpdateStmt() (err error) {
-	dao.updateStmt, err = dao.db.Prepare(context.Background(), "UPDATE user_profile SET update_version=update_version+1,user_id=?,user_name=?,todo_public_visible=? WHERE id=? AND update_version=?")
+	dao.updateStmt, err = dao.db.Prepare(context.Background(), "UPDATE user_profile SET update_version=update_version+1,user_id=?,user_name=?,todo_visibility=? WHERE id=? AND update_version=?")
 	return err
 }
 
@@ -862,7 +863,7 @@ func (dao *UserProfileDao) Insert(ctx context.Context, tx *wrap.Tx, e *UserProfi
 		stmt = tx.Stmt(ctx, stmt)
 	}
 
-	result, err := stmt.Exec(ctx, e.UpdateVersion, e.UserId, e.UserName, e.TodoPublicVisible)
+	result, err := stmt.Exec(ctx, e.UpdateVersion, e.UserId, e.UserName, e.TodoVisibility)
 	if err != nil {
 		return 0, err
 	}
@@ -881,7 +882,7 @@ func (dao *UserProfileDao) Update(ctx context.Context, tx *wrap.Tx, e *UserProfi
 		stmt = tx.Stmt(ctx, stmt)
 	}
 
-	_, err = stmt.Exec(ctx, e.UserId, e.UserName, e.TodoPublicVisible, e.Id, e.UpdateVersion)
+	_, err = stmt.Exec(ctx, e.UserId, e.UserName, e.TodoVisibility, e.Id, e.UpdateVersion)
 	if err != nil {
 		return err
 	}
@@ -905,7 +906,7 @@ func (dao *UserProfileDao) Delete(ctx context.Context, tx *wrap.Tx, id int64) (e
 
 func (dao *UserProfileDao) scanRow(row *wrap.Row) (*UserProfile, error) {
 	e := &UserProfile{}
-	err := row.Scan(&e.Id, &e.CreateTime, &e.UpdateTime, &e.UpdateVersion, &e.UserId, &e.UserName, &e.TodoPublicVisible)
+	err := row.Scan(&e.Id, &e.CreateTime, &e.UpdateTime, &e.UpdateVersion, &e.UserId, &e.UserName, &e.TodoVisibility)
 	if err != nil {
 		if err == wrap.ErrNoRows {
 			return nil, nil
@@ -921,7 +922,7 @@ func (dao *UserProfileDao) scanRows(rows *wrap.Rows) (list []*UserProfile, err e
 	list = make([]*UserProfile, 0)
 	for rows.Next() {
 		e := UserProfile{}
-		err = rows.Scan(&e.Id, &e.CreateTime, &e.UpdateTime, &e.UpdateVersion, &e.UserId, &e.UserName, &e.TodoPublicVisible)
+		err = rows.Scan(&e.Id, &e.CreateTime, &e.UpdateTime, &e.UpdateVersion, &e.UserId, &e.UserName, &e.TodoVisibility)
 		if err != nil {
 			return nil, err
 		}
@@ -1002,13 +1003,14 @@ type DB struct {
 	UserProfile *UserProfileDao
 }
 
-func NewDB(connectionString string) (d *DB, err error) {
-	if connectionString == "" {
-		return nil, fmt.Errorf("connectionString nil")
-	}
-
+func NewDB() (d *DB, err error) {
 	d = &DB{}
 
+	connectionString := os.Getenv("DB")
+	if connectionString == "" {
+		return nil, fmt.Errorf("DB env nil")
+	}
+	connectionString += "/todo?parseTime=true"
 	db, err := wrap.Open("mysql", connectionString)
 	if err != nil {
 		return nil, err

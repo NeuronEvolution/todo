@@ -78,10 +78,9 @@ func (h *TodoHandler) AddTodo(p operations.AddTodoParams, userId interface{}) mi
 }
 
 func (h *TodoHandler) UpdateTodo(p operations.UpdateTodoParams, userId interface{}) middleware.Responder {
-	todoItem := toTodoItem(p.TodoItem)
-	todoItem.TodoID = p.TodoID
+	todoItemMutate := toTodoItemMutate(p.TodoItem)
 
-	err := h.service.UpdateTodo(context.Background(), userId.(string), todoItem)
+	err := h.service.UpdateTodo(context.Background(), userId.(string), p.TodoID, todoItemMutate)
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -158,4 +157,13 @@ func (h *TodoHandler) GetFriend(p operations.GetFriendParams, userId interface{}
 	}
 
 	return operations.NewGetFriendOK().WithPayload(fromFriendInfo(friendInfo))
+}
+
+func (h *TodoHandler) GetCategoryNameList(p operations.GetCategoryNameListParams, userId interface{}) middleware.Responder {
+	result, err := h.service.GetCategoryNameList(context.Background(), userId.(string))
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return operations.NewGetCategoryNameListOK().WithPayload(result)
 }

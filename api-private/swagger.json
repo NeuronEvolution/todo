@@ -128,7 +128,7 @@
             "in": "body",
             "name": "todoItem",
             "schema": {
-              "$ref": "#/definitions/TodoItem"
+              "$ref": "#/definitions/TodoItemMutate"
             },
             "required": true
           }
@@ -240,6 +240,56 @@
         }
       }
     },
+    "/userProfile/userName": {
+      "post": {
+        "summary": "",
+        "operationId": "UpdateUserProfileUserName",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "userName",
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": [
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
+    "/userProfile/todoVisibility": {
+      "post": {
+        "summary": "",
+        "operationId": "UpdateUserProfileTodoVisibility",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "visibility",
+            "schema": {
+              "$ref": "#/definitions/TodoVisibility"
+            }
+          }
+        ],
+        "security": [
+          {
+            "Bearer": [
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
     "/friends": {
       "get": {
         "summary": "",
@@ -300,9 +350,50 @@
           }
         }
       }
+    },
+    "/categoryNames": {
+      "get": {
+        "summary": "",
+        "operationId": "GetCategoryNameList",
+        "parameters": [
+        ],
+        "security": [
+          {
+            "Bearer": [
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
+    "TodoStatus": {
+      "type": "string",
+      "enum": [
+        "ongoing",
+        "completed",
+        "discard"
+      ]
+    },
+    "TodoVisibility": {
+      "type": "string",
+      "enum": [
+        "private",
+        "public",
+        "friend"
+      ]
+    },
     "TodoItem": {
       "type": "object",
       "properties": {
@@ -312,6 +403,27 @@
         "userID": {
           "type": "string"
         },
+        "category": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "desc": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/TodoStatus"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "TodoItemMutate": {
+      "type": "object",
+      "properties": {
         "category": {
           "type": "string"
         },
@@ -353,8 +465,8 @@
         "userName": {
           "type": "string"
         },
-        "todoPublicVisible": {
-          "type": "boolean"
+        "todoVisibility": {
+          "$ref": "#/definitions/TodoVisibility"
         }
       }
     },
@@ -367,8 +479,8 @@
         "userName": {
           "type": "string"
         },
-        "todoPublicVisible": {
-          "type": "boolean"
+        "todoVisibility": {
+          "$ref": "#/definitions/TodoVisibility"
         },
         "todoCount": {
           "type": "integer",
@@ -382,21 +494,13 @@
         "nextPageToken": {
           "type": "string"
         },
-        "items":{
+        "items": {
           "type": "array",
           "items": {
-            "$ref":"#/definitions/FriendInfo"
+            "$ref": "#/definitions/FriendInfo"
           }
         }
       }
-    },
-    "TodoStatus":{
-      "type": "string",
-      "enum": [
-        "ongoing",
-        "completed",
-        "discard"
-      ]
     }
   }
 }

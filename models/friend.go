@@ -3,7 +3,7 @@ package models
 type FriendInfo struct {
 	UserID            string
 	UserName          string
-	TodoPublicVisible bool
+	TodoVisibility TodoVisibility
 	TodoCount         int64
 }
 

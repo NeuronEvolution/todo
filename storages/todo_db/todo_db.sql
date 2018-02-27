@@ -38,7 +38,7 @@ CREATE TABLE `todo` (
   UNIQUE KEY `idx_todo_id` (`todo_id`),
   KEY `idx_update_time` (`update_time`),
   KEY `idx_user_id_category` (`user_id`,`todo_category`)
-) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=99 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -55,12 +55,12 @@ CREATE TABLE `user_profile` (
   `update_version` bigint(20) NOT NULL,
   `user_id` varchar(128) NOT NULL,
   `user_name` varchar(128) NOT NULL,
-  `todo_public_visible` int(11) NOT NULL,
+  `todo_visibility` varchar(32) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_user_id` (`user_id`),
   KEY `idx_update_time` (`update_time`),
   KEY `idx_name` (`user_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -72,4 +72,4 @@ CREATE TABLE `user_profile` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-02-10 21:06:10
+-- Dump completed on 2018-02-26  9:10:07

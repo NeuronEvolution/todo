@@ -46,11 +46,7 @@ func (s *TodoService) GetFriendsList(ctx context.Context, userID string, query *
 		}
 
 		e.UserName = dbUserProfile.UserName
-		if dbUserProfile.TodoPublicVisible == 0 {
-			e.TodoPublicVisible = false
-		} else {
-			e.TodoPublicVisible = true
-		}
+		e.TodoVisibility=models.TodoVisibility(dbUserProfile.TodoVisibility)
 
 		result = append(result, e)
 	}
@@ -79,11 +75,7 @@ func (s *TodoService) GetFriend(ctx context.Context, userID string, friendID str
 	friend = &models.FriendInfo{}
 	friend.UserID = dbFriendProfile.UserId
 	friend.UserName = dbFriendProfile.UserName
-	if dbFriendProfile.TodoPublicVisible == 0 {
-		friend.TodoPublicVisible = false
-	} else {
-		friend.TodoPublicVisible = true
-	}
+	friend.TodoVisibility=models.TodoVisibility(dbFriendProfile.TodoVisibility)
 	friend.TodoCount = todoCount
 
 	return friend, nil

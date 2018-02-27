@@ -57,11 +57,7 @@ func FromUserProfile(p *UserProfile) (r *models.UserProfile) {
 	r = &models.UserProfile{}
 	r.UserID = p.UserId
 	r.UserName = p.UserName
-	if p.TodoPublicVisible == 0 {
-		r.TodoPublicVisible = true
-	} else {
-		r.TodoPublicVisible = false
-	}
+	r.TodoVisibility=models.TodoVisibility(p.TodoVisibility)
 
 	return r
 }
@@ -74,11 +70,7 @@ func ToUserProfile(p *models.UserProfile) (r *UserProfile) {
 	r = &UserProfile{}
 	r.UserId = p.UserID
 	r.UserName = p.UserName
-	if p.TodoPublicVisible {
-		r.TodoPublicVisible = 1
-	} else {
-		r.TodoPublicVisible = 0
-	}
+	r.TodoVisibility = string(p.TodoVisibility)
 
 	return r
 }

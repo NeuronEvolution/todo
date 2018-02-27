@@ -88,6 +88,27 @@ func init() {
         }
       }
     },
+    "/categoryNames": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "operationId": "GetCategoryNameList",
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
     "/friends": {
       "get": {
         "security": [
@@ -213,6 +234,52 @@ func init() {
         }
       }
     },
+    "/userProfile/todoVisibility": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "operationId": "UpdateUserProfileTodoVisibility",
+        "parameters": [
+          {
+            "name": "visibility",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/TodoVisibility"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
+    "/userProfile/userName": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "operationId": "UpdateUserProfileUserName",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "userName",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
     "/{todoId}": {
       "get": {
         "security": [
@@ -243,7 +310,7 @@ func init() {
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/TodoItem"
+              "$ref": "#/definitions/TodoItemMutate"
             }
           }
         ],
@@ -284,8 +351,8 @@ func init() {
           "type": "integer",
           "format": "int64"
         },
-        "todoPublicVisible": {
-          "type": "boolean"
+        "todoVisibility": {
+          "$ref": "#/definitions/TodoVisibility"
         },
         "userID": {
           "type": "string"
@@ -350,6 +417,27 @@ func init() {
         }
       }
     },
+    "TodoItemMutate": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "desc": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "status": {
+          "$ref": "#/definitions/TodoStatus"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
     "TodoStatus": {
       "type": "string",
       "enum": [
@@ -358,11 +446,19 @@ func init() {
         "discard"
       ]
     },
+    "TodoVisibility": {
+      "type": "string",
+      "enum": [
+        "private",
+        "public",
+        "friend"
+      ]
+    },
     "UserProfile": {
       "type": "object",
       "properties": {
-        "todoPublicVisible": {
-          "type": "boolean"
+        "todoVisibility": {
+          "$ref": "#/definitions/TodoVisibility"
         },
         "userID": {
           "type": "string"
@@ -451,6 +547,27 @@ func init() {
             "description": "ok",
             "schema": {
               "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/categoryNames": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "operationId": "GetCategoryNameList",
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           }
         }
@@ -578,6 +695,52 @@ func init() {
         }
       }
     },
+    "/userProfile/todoVisibility": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "operationId": "UpdateUserProfileTodoVisibility",
+        "parameters": [
+          {
+            "name": "visibility",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/TodoVisibility"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
+    "/userProfile/userName": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "operationId": "UpdateUserProfileUserName",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "userName",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
     "/{todoId}": {
       "get": {
         "security": [
@@ -608,7 +771,7 @@ func init() {
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/TodoItem"
+              "$ref": "#/definitions/TodoItemMutate"
             }
           }
         ],
@@ -649,8 +812,8 @@ func init() {
           "type": "integer",
           "format": "int64"
         },
-        "todoPublicVisible": {
-          "type": "boolean"
+        "todoVisibility": {
+          "$ref": "#/definitions/TodoVisibility"
         },
         "userID": {
           "type": "string"
@@ -709,6 +872,27 @@ func init() {
         }
       }
     },
+    "TodoItemMutate": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "desc": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "status": {
+          "$ref": "#/definitions/TodoStatus"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
     "TodoStatus": {
       "type": "string",
       "enum": [
@@ -717,11 +901,19 @@ func init() {
         "discard"
       ]
     },
+    "TodoVisibility": {
+      "type": "string",
+      "enum": [
+        "private",
+        "public",
+        "friend"
+      ]
+    },
     "UserProfile": {
       "type": "object",
       "properties": {
-        "todoPublicVisible": {
-          "type": "boolean"
+        "todoVisibility": {
+          "$ref": "#/definitions/TodoVisibility"
         },
         "userID": {
           "type": "string"

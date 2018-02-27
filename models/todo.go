@@ -18,6 +18,14 @@ type TodoItem struct {
 	Priority int32
 }
 
+type TodoItemMutate struct {
+	Category string
+	Title    string
+	Desc     string
+	Status   TodoStatus
+	Priority int32
+}
+
 type TodoItemGroup struct {
 	Category     string
 	TodoItemList []*TodoItem
