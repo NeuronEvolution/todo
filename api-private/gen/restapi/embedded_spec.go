@@ -9,8 +9,12 @@ import (
 	"encoding/json"
 )
 
-// SwaggerJSON embedded version of the swagger document used at generation time
-var SwaggerJSON, FlatSwaggerJSON json.RawMessage
+var (
+	// SwaggerJSON embedded version of the swagger document used at generation time
+	SwaggerJSON json.RawMessage
+	// FlatSwaggerJSON embedded flattened version of the swagger document used at generation time
+	FlatSwaggerJSON json.RawMessage
+)
 
 func init() {
 	SwaggerJSON = json.RawMessage([]byte(`{
@@ -310,7 +314,7 @@ func init() {
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/TodoItemMutate"
+              "$ref": "#/definitions/TodoItem"
             }
           }
         ],
@@ -417,27 +421,6 @@ func init() {
         }
       }
     },
-    "TodoItemMutate": {
-      "type": "object",
-      "properties": {
-        "category": {
-          "type": "string"
-        },
-        "desc": {
-          "type": "string"
-        },
-        "priority": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "status": {
-          "$ref": "#/definitions/TodoStatus"
-        },
-        "title": {
-          "type": "string"
-        }
-      }
-    },
     "TodoStatus": {
       "type": "string",
       "enum": [
@@ -520,7 +503,10 @@ func init() {
           "200": {
             "description": "ok",
             "schema": {
-              "$ref": "#/definitions/getTodoListOKBody"
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/TodoItem"
+              }
             }
           }
         }
@@ -649,7 +635,10 @@ func init() {
           "200": {
             "description": "ok",
             "schema": {
-              "$ref": "#/definitions/getTodoListByCategoryOKBody"
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/TodoItemGroup"
+              }
             }
           }
         }
@@ -771,7 +760,7 @@ func init() {
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/TodoItemMutate"
+              "$ref": "#/definitions/TodoItem"
             }
           }
         ],
@@ -827,7 +816,10 @@ func init() {
       "type": "object",
       "properties": {
         "items": {
-          "$ref": "#/definitions/friendInfoListItems"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FriendInfo"
+          }
         },
         "nextPageToken": {
           "type": "string"
@@ -868,28 +860,10 @@ func init() {
           "type": "string"
         },
         "todoItemList": {
-          "$ref": "#/definitions/todoItemGroupTodoItemList"
-        }
-      }
-    },
-    "TodoItemMutate": {
-      "type": "object",
-      "properties": {
-        "category": {
-          "type": "string"
-        },
-        "desc": {
-          "type": "string"
-        },
-        "priority": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "status": {
-          "$ref": "#/definitions/TodoStatus"
-        },
-        "title": {
-          "type": "string"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TodoItem"
+          }
         }
       }
     },
@@ -922,34 +896,6 @@ func init() {
           "type": "string"
         }
       }
-    },
-    "friendInfoListItems": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/FriendInfo"
-      },
-      "x-go-gen-location": "models"
-    },
-    "getTodoListByCategoryOKBody": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/TodoItemGroup"
-      },
-      "x-go-gen-location": "operations"
-    },
-    "getTodoListOKBody": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/TodoItem"
-      },
-      "x-go-gen-location": "operations"
-    },
-    "todoItemGroupTodoItemList": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/TodoItem"
-      },
-      "x-go-gen-location": "models"
     }
   },
   "securityDefinitions": {

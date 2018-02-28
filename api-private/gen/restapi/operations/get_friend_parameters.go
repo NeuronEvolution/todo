@@ -14,18 +14,18 @@ import (
 	strfmt "github.com/go-openapi/strfmt"
 )
 
-// NewRemoveTodoParams creates a new RemoveTodoParams object
+// NewGetFriendParams creates a new GetFriendParams object
 // no default values defined in spec.
-func NewRemoveTodoParams() RemoveTodoParams {
+func NewGetFriendParams() GetFriendParams {
 
-	return RemoveTodoParams{}
+	return GetFriendParams{}
 }
 
-// RemoveTodoParams contains all the bound params for the remove todo operation
+// GetFriendParams contains all the bound params for the get friend operation
 // typically these are obtained from a http.Request
 //
-// swagger:parameters RemoveTodo
-type RemoveTodoParams struct {
+// swagger:parameters GetFriend
+type GetFriendParams struct {
 
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
@@ -34,20 +34,20 @@ type RemoveTodoParams struct {
 	  Required: true
 	  In: path
 	*/
-	TodoID string
+	FriendID string
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
 // for simple values it will use straight method calls.
 //
-// To ensure default values, the struct must have been initialized with NewRemoveTodoParams() beforehand.
-func (o *RemoveTodoParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
+// To ensure default values, the struct must have been initialized with NewGetFriendParams() beforehand.
+func (o *GetFriendParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
 	var res []error
 
 	o.HTTPRequest = r
 
-	rTodoID, rhkTodoID, _ := route.Params.GetOK("todoId")
-	if err := o.bindTodoID(rTodoID, rhkTodoID, route.Formats); err != nil {
+	rFriendID, rhkFriendID, _ := route.Params.GetOK("friendID")
+	if err := o.bindFriendID(rFriendID, rhkFriendID, route.Formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -57,7 +57,7 @@ func (o *RemoveTodoParams) BindRequest(r *http.Request, route *middleware.Matche
 	return nil
 }
 
-func (o *RemoveTodoParams) bindTodoID(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *GetFriendParams) bindFriendID(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
@@ -66,7 +66,7 @@ func (o *RemoveTodoParams) bindTodoID(rawData []string, hasKey bool, formats str
 	// Required: true
 	// Parameter is provided by construction from the route
 
-	o.TodoID = raw
+	o.FriendID = raw
 
 	return nil
 }

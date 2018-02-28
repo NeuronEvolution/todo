@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-openapi/runtime"
 
-	"github.com/NeuronEvolution/todo/api-private/gen/models"
+	models "github.com/NeuronEvolution/todo/api-private/gen/models"
 )
 
 // GetTodoOKCode is the HTTP code returned for type GetTodoOK
@@ -30,6 +30,7 @@ type GetTodoOK struct {
 
 // NewGetTodoOK creates GetTodoOK with default headers values
 func NewGetTodoOK() *GetTodoOK {
+
 	return &GetTodoOK{}
 }
 

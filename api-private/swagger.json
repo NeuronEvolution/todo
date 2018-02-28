@@ -128,7 +128,7 @@
             "in": "body",
             "name": "todoItem",
             "schema": {
-              "$ref": "#/definitions/TodoItemMutate"
+              "$ref": "#/definitions/TodoItem"
             },
             "required": true
           }
@@ -403,27 +403,6 @@
         "userID": {
           "type": "string"
         },
-        "category": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        },
-        "desc": {
-          "type": "string"
-        },
-        "status": {
-          "$ref": "#/definitions/TodoStatus"
-        },
-        "priority": {
-          "type": "integer",
-          "format": "int32"
-        }
-      }
-    },
-    "TodoItemMutate": {
-      "type": "object",
-      "properties": {
         "category": {
           "type": "string"
         },

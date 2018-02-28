@@ -9,22 +9,17 @@ import (
 	"errors"
 	"net/url"
 	golangswaggerpaths "path"
-	"strings"
 )
 
-// RemoveTodoURL generates an URL for the remove todo operation
-type RemoveTodoURL struct {
-	TodoID string
-
+// GetUserProfileURL generates an URL for the get user profile operation
+type GetUserProfileURL struct {
 	_basePath string
-	// avoid unkeyed usage
-	_ struct{}
 }
 
 // WithBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *RemoveTodoURL) WithBasePath(bp string) *RemoveTodoURL {
+func (o *GetUserProfileURL) WithBasePath(bp string) *GetUserProfileURL {
 	o.SetBasePath(bp)
 	return o
 }
@@ -32,22 +27,15 @@ func (o *RemoveTodoURL) WithBasePath(bp string) *RemoveTodoURL {
 // SetBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *RemoveTodoURL) SetBasePath(bp string) {
+func (o *GetUserProfileURL) SetBasePath(bp string) {
 	o._basePath = bp
 }
 
 // Build a url path and query string
-func (o *RemoveTodoURL) Build() (*url.URL, error) {
+func (o *GetUserProfileURL) Build() (*url.URL, error) {
 	var result url.URL
 
-	var _path = "/{todoId}"
-
-	todoID := o.TodoID
-	if todoID != "" {
-		_path = strings.Replace(_path, "{todoId}", todoID, -1)
-	} else {
-		return nil, errors.New("TodoID is required on RemoveTodoURL")
-	}
+	var _path = "/userProfile"
 
 	_basePath := o._basePath
 	if _basePath == "" {
@@ -59,7 +47,7 @@ func (o *RemoveTodoURL) Build() (*url.URL, error) {
 }
 
 // Must is a helper function to panic when the url builder returns an error
-func (o *RemoveTodoURL) Must(u *url.URL, err error) *url.URL {
+func (o *GetUserProfileURL) Must(u *url.URL, err error) *url.URL {
 	if err != nil {
 		panic(err)
 	}
@@ -70,17 +58,17 @@ func (o *RemoveTodoURL) Must(u *url.URL, err error) *url.URL {
 }
 
 // String returns the string representation of the path with query string
-func (o *RemoveTodoURL) String() string {
+func (o *GetUserProfileURL) String() string {
 	return o.Must(o.Build()).String()
 }
 
 // BuildFull builds a full url with scheme, host, path and query string
-func (o *RemoveTodoURL) BuildFull(scheme, host string) (*url.URL, error) {
+func (o *GetUserProfileURL) BuildFull(scheme, host string) (*url.URL, error) {
 	if scheme == "" {
-		return nil, errors.New("scheme is required for a full url on RemoveTodoURL")
+		return nil, errors.New("scheme is required for a full url on GetUserProfileURL")
 	}
 	if host == "" {
-		return nil, errors.New("host is required for a full url on RemoveTodoURL")
+		return nil, errors.New("host is required for a full url on GetUserProfileURL")
 	}
 
 	base, err := o.Build()
@@ -94,6 +82,6 @@ func (o *RemoveTodoURL) BuildFull(scheme, host string) (*url.URL, error) {
 }
 
 // StringFull returns the string representation of a complete url
-func (o *RemoveTodoURL) StringFull(scheme, host string) string {
+func (o *GetUserProfileURL) StringFull(scheme, host string) string {
 	return o.Must(o.BuildFull(scheme, host)).String()
 }

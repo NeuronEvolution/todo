@@ -78,9 +78,9 @@ func (h *TodoHandler) AddTodo(p operations.AddTodoParams, userId interface{}) mi
 }
 
 func (h *TodoHandler) UpdateTodo(p operations.UpdateTodoParams, userId interface{}) middleware.Responder {
-	todoItemMutate := toTodoItemMutate(p.TodoItem)
+	todoItem := toTodoItem(p.TodoItem)
 
-	err := h.service.UpdateTodo(context.Background(), userId.(string), p.TodoID, todoItemMutate)
+	err := h.service.UpdateTodo(context.Background(), userId.(string), p.TodoID, todoItem)
 	if err != nil {
 		return errors.Wrap(err)
 	}

@@ -28,6 +28,7 @@ type AddTodoOK struct {
 
 // NewAddTodoOK creates AddTodoOK with default headers values
 func NewAddTodoOK() *AddTodoOK {
+
 	return &AddTodoOK{}
 }
 

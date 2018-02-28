@@ -15,18 +15,18 @@ import (
 	strfmt "github.com/go-openapi/strfmt"
 )
 
-// NewGetTodoListParams creates a new GetTodoListParams object
+// NewUpdateUserProfileUserNameParams creates a new UpdateUserProfileUserNameParams object
 // no default values defined in spec.
-func NewGetTodoListParams() GetTodoListParams {
+func NewUpdateUserProfileUserNameParams() UpdateUserProfileUserNameParams {
 
-	return GetTodoListParams{}
+	return UpdateUserProfileUserNameParams{}
 }
 
-// GetTodoListParams contains all the bound params for the get todo list operation
+// UpdateUserProfileUserNameParams contains all the bound params for the update user profile user name operation
 // typically these are obtained from a http.Request
 //
-// swagger:parameters GetTodoList
-type GetTodoListParams struct {
+// swagger:parameters UpdateUserProfileUserName
+type UpdateUserProfileUserNameParams struct {
 
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
@@ -34,22 +34,22 @@ type GetTodoListParams struct {
 	/*
 	  In: query
 	*/
-	FriendID *string
+	UserName *string
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
 // for simple values it will use straight method calls.
 //
-// To ensure default values, the struct must have been initialized with NewGetTodoListParams() beforehand.
-func (o *GetTodoListParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
+// To ensure default values, the struct must have been initialized with NewUpdateUserProfileUserNameParams() beforehand.
+func (o *UpdateUserProfileUserNameParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
 	var res []error
 
 	o.HTTPRequest = r
 
 	qs := runtime.Values(r.URL.Query())
 
-	qFriendID, qhkFriendID, _ := qs.GetOK("friendID")
-	if err := o.bindFriendID(qFriendID, qhkFriendID, route.Formats); err != nil {
+	qUserName, qhkUserName, _ := qs.GetOK("userName")
+	if err := o.bindUserName(qUserName, qhkUserName, route.Formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -59,7 +59,7 @@ func (o *GetTodoListParams) BindRequest(r *http.Request, route *middleware.Match
 	return nil
 }
 
-func (o *GetTodoListParams) bindFriendID(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *UpdateUserProfileUserNameParams) bindUserName(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
@@ -71,7 +71,7 @@ func (o *GetTodoListParams) bindFriendID(rawData []string, hasKey bool, formats 
 		return nil
 	}
 
-	o.FriendID = &raw
+	o.UserName = &raw
 
 	return nil
 }

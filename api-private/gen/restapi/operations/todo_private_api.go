@@ -28,6 +28,8 @@ func NewTodoPrivateAPI(spec *loads.Document) *TodoPrivateAPI {
 		formats:             strfmt.Default,
 		defaultConsumes:     "application/json",
 		defaultProduces:     "application/json",
+		customConsumers:     make(map[string]runtime.Consumer),
+		customProducers:     make(map[string]runtime.Producer),
 		ServerShutdown:      func() {},
 		spec:                spec,
 		ServeError:          restful.ServeError,
@@ -37,43 +39,43 @@ func NewTodoPrivateAPI(spec *loads.Document) *TodoPrivateAPI {
 		JSONConsumer:        runtime.JSONConsumer(),
 		JSONProducer:        runtime.JSONProducer(),
 		AddTodoHandler: AddTodoHandlerFunc(func(params AddTodoParams, principal interface{}) middleware.Responder {
-			panic("operation AddTodo has not yet been implemented")
+			return middleware.NotImplemented("operation AddTodo has not yet been implemented")
 		}),
 		GetCategoryNameListHandler: GetCategoryNameListHandlerFunc(func(params GetCategoryNameListParams, principal interface{}) middleware.Responder {
-			panic("operation GetCategoryNameList has not yet been implemented")
+			return middleware.NotImplemented("operation GetCategoryNameList has not yet been implemented")
 		}),
 		GetFriendHandler: GetFriendHandlerFunc(func(params GetFriendParams, principal interface{}) middleware.Responder {
-			panic("operation GetFriend has not yet been implemented")
+			return middleware.NotImplemented("operation GetFriend has not yet been implemented")
 		}),
 		GetFriendsListHandler: GetFriendsListHandlerFunc(func(params GetFriendsListParams, principal interface{}) middleware.Responder {
-			panic("operation GetFriendsList has not yet been implemented")
+			return middleware.NotImplemented("operation GetFriendsList has not yet been implemented")
 		}),
 		GetTodoHandler: GetTodoHandlerFunc(func(params GetTodoParams, principal interface{}) middleware.Responder {
-			panic("operation GetTodo has not yet been implemented")
+			return middleware.NotImplemented("operation GetTodo has not yet been implemented")
 		}),
 		GetTodoListHandler: GetTodoListHandlerFunc(func(params GetTodoListParams, principal interface{}) middleware.Responder {
-			panic("operation GetTodoList has not yet been implemented")
+			return middleware.NotImplemented("operation GetTodoList has not yet been implemented")
 		}),
 		GetTodoListByCategoryHandler: GetTodoListByCategoryHandlerFunc(func(params GetTodoListByCategoryParams, principal interface{}) middleware.Responder {
-			panic("operation GetTodoListByCategory has not yet been implemented")
+			return middleware.NotImplemented("operation GetTodoListByCategory has not yet been implemented")
 		}),
 		GetUserProfileHandler: GetUserProfileHandlerFunc(func(params GetUserProfileParams, principal interface{}) middleware.Responder {
-			panic("operation GetUserProfile has not yet been implemented")
+			return middleware.NotImplemented("operation GetUserProfile has not yet been implemented")
 		}),
 		RemoveTodoHandler: RemoveTodoHandlerFunc(func(params RemoveTodoParams, principal interface{}) middleware.Responder {
-			panic("operation RemoveTodo has not yet been implemented")
+			return middleware.NotImplemented("operation RemoveTodo has not yet been implemented")
 		}),
 		UpdateTodoHandler: UpdateTodoHandlerFunc(func(params UpdateTodoParams, principal interface{}) middleware.Responder {
-			panic("operation UpdateTodo has not yet been implemented")
+			return middleware.NotImplemented("operation UpdateTodo has not yet been implemented")
 		}),
 		UpdateUserProfileHandler: UpdateUserProfileHandlerFunc(func(params UpdateUserProfileParams, principal interface{}) middleware.Responder {
-			panic("operation UpdateUserProfile has not yet been implemented")
+			return middleware.NotImplemented("operation UpdateUserProfile has not yet been implemented")
 		}),
 		UpdateUserProfileTodoVisibilityHandler: UpdateUserProfileTodoVisibilityHandlerFunc(func(params UpdateUserProfileTodoVisibilityParams, principal interface{}) middleware.Responder {
-			panic("operation UpdateUserProfileTodoVisibility has not yet been implemented")
+			return middleware.NotImplemented("operation UpdateUserProfileTodoVisibility has not yet been implemented")
 		}),
 		UpdateUserProfileUserNameHandler: UpdateUserProfileUserNameHandlerFunc(func(params UpdateUserProfileUserNameParams, principal interface{}) middleware.Responder {
-			panic("operation UpdateUserProfileUserName has not yet been implemented")
+			return middleware.NotImplemented("operation UpdateUserProfileUserName has not yet been implemented")
 		}),
 
 		// Applies when the "Authorization" header is set
@@ -92,6 +94,8 @@ type TodoPrivateAPI struct {
 	context         *middleware.Context
 	handlers        map[string]map[string]http.Handler
 	formats         strfmt.Registry
+	customConsumers map[string]runtime.Consumer
+	customProducers map[string]runtime.Producer
 	defaultConsumes string
 	defaultProduces string
 	Middleware      func(middleware.Builder) http.Handler
@@ -311,6 +315,10 @@ func (o *TodoPrivateAPI) ConsumersFor(mediaTypes []string) map[string]runtime.Co
 			result["application/json"] = o.JSONConsumer
 
 		}
+
+		if c, ok := o.customConsumers[mt]; ok {
+			result[mt] = c
+		}
 	}
 	return result
 
@@ -326,6 +334,10 @@ func (o *TodoPrivateAPI) ProducersFor(mediaTypes []string) map[string]runtime.Pr
 		case "application/json":
 			result["application/json"] = o.JSONProducer
 
+		}
+
+		if p, ok := o.customProducers[mt]; ok {
+			result[mt] = p
 		}
 	}
 	return result
@@ -447,4 +459,14 @@ func (o *TodoPrivateAPI) Init() {
 	if len(o.handlers) == 0 {
 		o.initHandlerCache()
 	}
+}
+
+// RegisterConsumer allows you to add (or override) a consumer for a media type.
+func (o *TodoPrivateAPI) RegisterConsumer(mediaType string, consumer runtime.Consumer) {
+	o.customConsumers[mediaType] = consumer
+}
+
+// RegisterProducer allows you to add (or override) a producer for a media type.
+func (o *TodoPrivateAPI) RegisterProducer(mediaType string, producer runtime.Producer) {
+	o.customProducers[mediaType] = producer
 }

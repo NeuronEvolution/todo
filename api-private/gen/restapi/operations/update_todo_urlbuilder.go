@@ -48,6 +48,7 @@ func (o *UpdateTodoURL) Build() (*url.URL, error) {
 	} else {
 		return nil, errors.New("TodoID is required on UpdateTodoURL")
 	}
+
 	_basePath := o._basePath
 	if _basePath == "" {
 		_basePath = "/api-private/v1/todo"

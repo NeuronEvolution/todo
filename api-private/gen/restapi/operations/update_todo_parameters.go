@@ -15,13 +15,13 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-	"github.com/NeuronEvolution/todo/api-private/gen/models"
+	models "github.com/NeuronEvolution/todo/api-private/gen/models"
 )
 
 // NewUpdateTodoParams creates a new UpdateTodoParams object
-// with the default values initialized.
+// no default values defined in spec.
 func NewUpdateTodoParams() UpdateTodoParams {
-	var ()
+
 	return UpdateTodoParams{}
 }
 
@@ -43,13 +43,16 @@ type UpdateTodoParams struct {
 	  Required: true
 	  In: body
 	*/
-	TodoItem *models.TodoItemMutate
+	TodoItem *models.TodoItem
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
-// for simple values it will use straight method calls
+// for simple values it will use straight method calls.
+//
+// To ensure default values, the struct must have been initialized with NewUpdateTodoParams() beforehand.
 func (o *UpdateTodoParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
 	var res []error
+
 	o.HTTPRequest = r
 
 	rTodoID, rhkTodoID, _ := route.Params.GetOK("todoId")
@@ -59,7 +62,7 @@ func (o *UpdateTodoParams) BindRequest(r *http.Request, route *middleware.Matche
 
 	if runtime.HasBody(r) {
 		defer r.Body.Close()
-		var body models.TodoItemMutate
+		var body models.TodoItem
 		if err := route.Consumer.Consume(r.Body, &body); err != nil {
 			if err == io.EOF {
 				res = append(res, errors.Required("todoItem", "body"))
@@ -92,6 +95,9 @@ func (o *UpdateTodoParams) bindTodoID(rawData []string, hasKey bool, formats str
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
 	}
+
+	// Required: true
+	// Parameter is provided by construction from the route
 
 	o.TodoID = raw
 

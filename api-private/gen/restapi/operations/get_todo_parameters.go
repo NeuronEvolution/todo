@@ -15,9 +15,9 @@ import (
 )
 
 // NewGetTodoParams creates a new GetTodoParams object
-// with the default values initialized.
+// no default values defined in spec.
 func NewGetTodoParams() GetTodoParams {
-	var ()
+
 	return GetTodoParams{}
 }
 
@@ -38,9 +38,12 @@ type GetTodoParams struct {
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
-// for simple values it will use straight method calls
+// for simple values it will use straight method calls.
+//
+// To ensure default values, the struct must have been initialized with NewGetTodoParams() beforehand.
 func (o *GetTodoParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
 	var res []error
+
 	o.HTTPRequest = r
 
 	rTodoID, rhkTodoID, _ := route.Params.GetOK("todoId")
@@ -59,6 +62,9 @@ func (o *GetTodoParams) bindTodoID(rawData []string, hasKey bool, formats strfmt
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
 	}
+
+	// Required: true
+	// Parameter is provided by construction from the route
 
 	o.TodoID = raw
 

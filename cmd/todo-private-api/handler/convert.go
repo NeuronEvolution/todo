@@ -79,21 +79,6 @@ func toTodoItem(p *api.TodoItem) (r *models.TodoItem) {
 	return r
 }
 
-func toTodoItemMutate(p *api.TodoItemMutate) (r *models.TodoItemMutate) {
-	if p == nil {
-		return nil
-	}
-
-	r = &models.TodoItemMutate{}
-	r.Category = p.Category
-	r.Title = p.Title
-	r.Desc = p.Desc
-	r.Status = toTodoStatus(p.Status)
-	r.Priority = p.Priority
-
-	return r
-}
-
 func fromTodoItemGroup(p *models.TodoItemGroup) (r *api.TodoItemGroup) {
 	if p == nil {
 		return nil

@@ -23,6 +23,7 @@ type RemoveTodoOK struct {
 
 // NewRemoveTodoOK creates RemoveTodoOK with default headers values
 func NewRemoveTodoOK() *RemoveTodoOK {
+
 	return &RemoveTodoOK{}
 }
 

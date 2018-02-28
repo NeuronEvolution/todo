@@ -23,6 +23,7 @@ type UpdateTodoOK struct {
 
 // NewUpdateTodoOK creates UpdateTodoOK with default headers values
 func NewUpdateTodoOK() *UpdateTodoOK {
+
 	return &UpdateTodoOK{}
 }
 
