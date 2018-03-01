@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // TodoItemGroup todo item group
@@ -19,15 +20,22 @@ import (
 type TodoItemGroup struct {
 
 	// category
-	Category string `json:"category,omitempty"`
+	// Required: true
+	Category *string `json:"category"`
 
 	// todo item list
+	// Required: true
 	TodoItemList []*TodoItem `json:"todoItemList"`
 }
 
 // Validate validates this todo item group
 func (m *TodoItemGroup) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateCategory(formats); err != nil {
+		// prop
+		res = append(res, err)
+	}
 
 	if err := m.validateTodoItemList(formats); err != nil {
 		// prop
@@ -40,10 +48,19 @@ func (m *TodoItemGroup) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *TodoItemGroup) validateCategory(formats strfmt.Registry) error {
+
+	if err := validate.Required("category", "body", m.Category); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *TodoItemGroup) validateTodoItemList(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.TodoItemList) { // not required
-		return nil
+	if err := validate.Required("todoItemList", "body", m.TodoItemList); err != nil {
+		return err
 	}
 
 	for i := 0; i < len(m.TodoItemList); i++ {

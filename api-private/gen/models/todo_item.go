@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // TodoItem todo item
@@ -17,7 +18,8 @@ import (
 type TodoItem struct {
 
 	// category
-	Category string `json:"category,omitempty"`
+	// Required: true
+	Category *string `json:"category"`
 
 	// desc
 	Desc string `json:"desc,omitempty"`
@@ -26,23 +28,38 @@ type TodoItem struct {
 	Priority int32 `json:"priority,omitempty"`
 
 	// status
-	Status TodoStatus `json:"status,omitempty"`
+	// Required: true
+	Status TodoStatus `json:"status"`
 
 	// title
-	Title string `json:"title,omitempty"`
+	// Required: true
+	Title *string `json:"title"`
 
 	// todo Id
-	TodoID string `json:"todoId,omitempty"`
-
-	// user ID
-	UserID string `json:"userID,omitempty"`
+	// Required: true
+	TodoID *string `json:"todoId"`
 }
 
 // Validate validates this todo item
 func (m *TodoItem) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateCategory(formats); err != nil {
+		// prop
+		res = append(res, err)
+	}
+
 	if err := m.validateStatus(formats); err != nil {
+		// prop
+		res = append(res, err)
+	}
+
+	if err := m.validateTitle(formats); err != nil {
+		// prop
+		res = append(res, err)
+	}
+
+	if err := m.validateTodoID(formats); err != nil {
 		// prop
 		res = append(res, err)
 	}
@@ -53,16 +70,39 @@ func (m *TodoItem) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *TodoItem) validateStatus(formats strfmt.Registry) error {
+func (m *TodoItem) validateCategory(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.Status) { // not required
-		return nil
+	if err := validate.Required("category", "body", m.Category); err != nil {
+		return err
 	}
+
+	return nil
+}
+
+func (m *TodoItem) validateStatus(formats strfmt.Registry) error {
 
 	if err := m.Status.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("status")
 		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *TodoItem) validateTitle(formats strfmt.Registry) error {
+
+	if err := validate.Required("title", "body", m.Title); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *TodoItem) validateTodoID(formats strfmt.Registry) error {
+
+	if err := validate.Required("todoId", "body", m.TodoID); err != nil {
 		return err
 	}
 

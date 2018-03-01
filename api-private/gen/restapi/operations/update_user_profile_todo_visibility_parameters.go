@@ -6,6 +6,7 @@ package operations
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/go-openapi/errors"
@@ -32,6 +33,7 @@ type UpdateUserProfileTodoVisibilityParams struct {
 	HTTPRequest *http.Request `json:"-"`
 
 	/*
+	  Required: true
 	  In: body
 	*/
 	Visibility models.TodoVisibility
@@ -50,7 +52,12 @@ func (o *UpdateUserProfileTodoVisibilityParams) BindRequest(r *http.Request, rou
 		defer r.Body.Close()
 		var body models.TodoVisibility
 		if err := route.Consumer.Consume(r.Body, &body); err != nil {
-			res = append(res, errors.NewParseError("visibility", "body", "", err))
+			if err == io.EOF {
+				res = append(res, errors.Required("visibility", "body"))
+			} else {
+				res = append(res, errors.NewParseError("visibility", "body", "", err))
+			}
+
 		} else {
 			if err := body.Validate(route.Formats); err != nil {
 				res = append(res, err)
@@ -61,6 +68,8 @@ func (o *UpdateUserProfileTodoVisibilityParams) BindRequest(r *http.Request, rou
 			}
 		}
 
+	} else {
+		res = append(res, errors.Required("visibility", "body"))
 	}
 
 	if len(res) > 0 {

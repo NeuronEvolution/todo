@@ -13,7 +13,7 @@ import (
 
 // UpdateUserProfileUserNameURL generates an URL for the update user profile user name operation
 type UpdateUserProfileUserNameURL struct {
-	UserName *string
+	UserName string
 
 	_basePath string
 	// avoid unkeyed usage
@@ -49,10 +49,7 @@ func (o *UpdateUserProfileUserNameURL) Build() (*url.URL, error) {
 
 	qs := make(url.Values)
 
-	var userName string
-	if o.UserName != nil {
-		userName = *o.UserName
-	}
+	userName := o.UserName
 	if userName != "" {
 		qs.Set("userName", userName)
 	}

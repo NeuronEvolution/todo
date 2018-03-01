@@ -4,11 +4,25 @@ import (
 	"context"
 	"github.com/NeuronEvolution/todo/models"
 	"github.com/NeuronEvolution/todo/storages/todo_db"
+	"github.com/NeuronFramework/errors"
 	"sort"
 )
 
-func (s *TodoService) GetTodoListByCategory(ctx context.Context, userId string) (result []*models.TodoItemGroup, err error) {
-	dbTodoList, err := s.todoDB.Todo.GetQuery().UserId_Equal(userId).QueryList(ctx, nil)
+func (s *TodoService) GetTodoListByCategory(ctx context.Context, userId string, friendId string) (result []*models.TodoItemGroup, err error) {
+	targetUserID := userId
+	if friendId != "" && friendId != userId {
+		targetUserID = friendId
+		dbUserProfile, err := s.todoDB.UserProfile.GetQuery().UserId_Equal(targetUserID).QueryOne(ctx, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		if dbUserProfile.TodoVisibility != string(models.TodoVisibilityPublic) {
+			return nil, errors.BadRequest("", "该用户的计划不公开")
+		}
+	}
+
+	dbTodoList, err := s.todoDB.Todo.GetQuery().UserId_Equal(targetUserID).QueryList(ctx, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -31,9 +31,11 @@ func main() {
 		api.GetTodoListByCategoryHandler = operations.GetTodoListByCategoryHandlerFunc(h.GetTodoListByCategory)
 		api.GetUserProfileHandler = operations.GetUserProfileHandlerFunc(h.GetUserProfile)
 		api.UpdateUserProfileHandler = operations.UpdateUserProfileHandlerFunc(h.UpdateUserProfile)
+		api.UpdateUserProfileTodoVisibilityHandler = operations.UpdateUserProfileTodoVisibilityHandlerFunc(h.UpdateUserProfileTodoVisibility)
+		api.UpdateUserProfileUserNameHandler = operations.UpdateUserProfileUserNameHandlerFunc(h.UpdateUserProfileUserName)
 		api.GetFriendsListHandler = operations.GetFriendsListHandlerFunc(h.GetFriendsList)
 		api.GetFriendHandler = operations.GetFriendHandlerFunc(h.GetFriend)
-		api.GetCategoryNameListHandler=operations.GetCategoryNameListHandlerFunc(h.GetCategoryNameList)
+		api.GetCategoryNameListHandler = operations.GetCategoryNameListHandlerFunc(h.GetCategoryNameList)
 
 		return api.Serve(nil), nil
 	})

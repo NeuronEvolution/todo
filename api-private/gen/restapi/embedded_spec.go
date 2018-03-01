@@ -250,6 +250,7 @@ func init() {
           {
             "name": "visibility",
             "in": "body",
+            "required": true,
             "schema": {
               "$ref": "#/definitions/TodoVisibility"
             }
@@ -274,7 +275,8 @@ func init() {
           {
             "type": "string",
             "name": "userName",
-            "in": "query"
+            "in": "query",
+            "required": true
           }
         ],
         "responses": {
@@ -350,6 +352,12 @@ func init() {
   "definitions": {
     "FriendInfo": {
       "type": "object",
+      "required": [
+        "userID",
+        "userName",
+        "todoVisibility",
+        "todoCount"
+      ],
       "properties": {
         "todoCount": {
           "type": "integer",
@@ -368,6 +376,10 @@ func init() {
     },
     "FriendInfoList": {
       "type": "object",
+      "required": [
+        "items",
+        "nextPageToken"
+      ],
       "properties": {
         "items": {
           "type": "array",
@@ -382,6 +394,12 @@ func init() {
     },
     "TodoItem": {
       "type": "object",
+      "required": [
+        "todoId",
+        "category",
+        "title",
+        "status"
+      ],
       "properties": {
         "category": {
           "type": "string"
@@ -401,14 +419,15 @@ func init() {
         },
         "todoId": {
           "type": "string"
-        },
-        "userID": {
-          "type": "string"
         }
       }
     },
     "TodoItemGroup": {
       "type": "object",
+      "required": [
+        "category",
+        "todoItemList"
+      ],
       "properties": {
         "category": {
           "type": "string"
@@ -439,12 +458,13 @@ func init() {
     },
     "UserProfile": {
       "type": "object",
+      "required": [
+        "userName",
+        "todoVisibility"
+      ],
       "properties": {
         "todoVisibility": {
           "$ref": "#/definitions/TodoVisibility"
-        },
-        "userID": {
-          "type": "string"
         },
         "userName": {
           "type": "string"
@@ -696,6 +716,7 @@ func init() {
           {
             "name": "visibility",
             "in": "body",
+            "required": true,
             "schema": {
               "$ref": "#/definitions/TodoVisibility"
             }
@@ -720,7 +741,8 @@ func init() {
           {
             "type": "string",
             "name": "userName",
-            "in": "query"
+            "in": "query",
+            "required": true
           }
         ],
         "responses": {
@@ -796,6 +818,12 @@ func init() {
   "definitions": {
     "FriendInfo": {
       "type": "object",
+      "required": [
+        "userID",
+        "userName",
+        "todoVisibility",
+        "todoCount"
+      ],
       "properties": {
         "todoCount": {
           "type": "integer",
@@ -814,6 +842,10 @@ func init() {
     },
     "FriendInfoList": {
       "type": "object",
+      "required": [
+        "items",
+        "nextPageToken"
+      ],
       "properties": {
         "items": {
           "type": "array",
@@ -828,6 +860,12 @@ func init() {
     },
     "TodoItem": {
       "type": "object",
+      "required": [
+        "todoId",
+        "category",
+        "title",
+        "status"
+      ],
       "properties": {
         "category": {
           "type": "string"
@@ -847,14 +885,15 @@ func init() {
         },
         "todoId": {
           "type": "string"
-        },
-        "userID": {
-          "type": "string"
         }
       }
     },
     "TodoItemGroup": {
       "type": "object",
+      "required": [
+        "category",
+        "todoItemList"
+      ],
       "properties": {
         "category": {
           "type": "string"
@@ -885,12 +924,13 @@ func init() {
     },
     "UserProfile": {
       "type": "object",
+      "required": [
+        "userName",
+        "todoVisibility"
+      ],
       "properties": {
         "todoVisibility": {
           "$ref": "#/definitions/TodoVisibility"
-        },
-        "userID": {
-          "type": "string"
         },
         "userName": {
           "type": "string"

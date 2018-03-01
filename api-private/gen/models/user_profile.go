@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // UserProfile user profile
@@ -17,13 +18,12 @@ import (
 type UserProfile struct {
 
 	// todo visibility
-	TodoVisibility TodoVisibility `json:"todoVisibility,omitempty"`
-
-	// user ID
-	UserID string `json:"userID,omitempty"`
+	// Required: true
+	TodoVisibility TodoVisibility `json:"todoVisibility"`
 
 	// user name
-	UserName string `json:"userName,omitempty"`
+	// Required: true
+	UserName *string `json:"userName"`
 }
 
 // Validate validates this user profile
@@ -31,6 +31,11 @@ func (m *UserProfile) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateTodoVisibility(formats); err != nil {
+		// prop
+		res = append(res, err)
+	}
+
+	if err := m.validateUserName(formats); err != nil {
 		// prop
 		res = append(res, err)
 	}
@@ -43,14 +48,19 @@ func (m *UserProfile) Validate(formats strfmt.Registry) error {
 
 func (m *UserProfile) validateTodoVisibility(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.TodoVisibility) { // not required
-		return nil
-	}
-
 	if err := m.TodoVisibility.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("todoVisibility")
 		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *UserProfile) validateUserName(formats strfmt.Registry) error {
+
+	if err := validate.Required("userName", "body", m.UserName); err != nil {
 		return err
 	}
 

@@ -25,10 +25,9 @@ func fromTodoItem(p *models.TodoItem) (r *api.TodoItem) {
 	}
 
 	r = &api.TodoItem{}
-	r.TodoID = p.TodoID
-	r.UserID = p.UserID
-	r.Category = p.Category
-	r.Title = p.Title
+	r.TodoID = &p.TodoID
+	r.Category = &p.Category
+	r.Title = &p.Title
 	r.Desc = p.Desc
 	r.Status = fromTodoStatus(p.Status)
 	r.Priority = p.Priority
@@ -68,10 +67,9 @@ func toTodoItem(p *api.TodoItem) (r *models.TodoItem) {
 	}
 
 	r = &models.TodoItem{}
-	r.TodoID = p.TodoID
-	r.UserID = p.UserID
-	r.Category = p.Category
-	r.Title = p.Title
+	r.TodoID = *p.TodoID
+	r.Category = *p.Category
+	r.Title = *p.Title
 	r.Desc = p.Desc
 	r.Status = toTodoStatus(p.Status)
 	r.Priority = p.Priority
@@ -85,7 +83,7 @@ func fromTodoItemGroup(p *models.TodoItemGroup) (r *api.TodoItemGroup) {
 	}
 
 	r = &api.TodoItemGroup{}
-	r.Category = p.Category
+	r.Category = &p.Category
 	r.TodoItemList = fromTodoItemList(p.TodoItemList)
 
 	return r
@@ -104,7 +102,7 @@ func fromTodoItemGroupList(p []*models.TodoItemGroup) (r []*api.TodoItemGroup) {
 	return r
 }
 
-func fromTodoVisibility(p models.TodoVisibility)(r api.TodoVisibility) {
+func fromTodoVisibility(p models.TodoVisibility) (r api.TodoVisibility) {
 	switch p {
 	case models.TodoVisibilityPrivate:
 		return api.TodoVisibilityPrivate
@@ -117,7 +115,7 @@ func fromTodoVisibility(p models.TodoVisibility)(r api.TodoVisibility) {
 	}
 }
 
-func toTodoVisibility(p api.TodoVisibility)(r models.TodoVisibility) {
+func toTodoVisibility(p api.TodoVisibility) (r models.TodoVisibility) {
 	switch p {
 	case api.TodoVisibilityPrivate:
 		return models.TodoVisibilityPrivate
@@ -136,8 +134,7 @@ func fromUserProfile(p *models.UserProfile) (r *api.UserProfile) {
 	}
 
 	r = &api.UserProfile{}
-	r.UserID = p.UserID
-	r.UserName = p.UserName
+	r.UserName = &p.UserName
 	r.TodoVisibility = fromTodoVisibility(p.TodoVisibility)
 
 	return r
@@ -149,9 +146,8 @@ func toUserProfile(p *api.UserProfile) (r *models.UserProfile) {
 	}
 
 	r = &models.UserProfile{}
-	r.UserID = p.UserID
-	r.UserName = p.UserName
-	r.TodoVisibility = toTodoVisibility( p.TodoVisibility)
+	r.UserName = *p.UserName
+	r.TodoVisibility = toTodoVisibility(p.TodoVisibility)
 
 	return r
 }
@@ -162,10 +158,10 @@ func fromFriendInfo(p *models.FriendInfo) (r *api.FriendInfo) {
 	}
 
 	r = &api.FriendInfo{}
-	r.UserID = p.UserID
-	r.UserName = p.UserName
+	r.UserID = &p.UserID
+	r.UserName = &p.UserName
 	r.TodoVisibility = fromTodoVisibility(p.TodoVisibility)
-	r.TodoCount = p.TodoCount
+	r.TodoCount = &p.TodoCount
 
 	return r
 }

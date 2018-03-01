@@ -48,7 +48,11 @@ func (s *TodoService) AddTodo(ctx context.Context, userId string, todoItem *mode
 	return dbTodo.TodoId, nil
 }
 
-func (s *TodoService) UpdateTodo(ctx context.Context, userId string, todoID string, todoItemMutate *models.TodoItem) error {
+func (s *TodoService) UpdateTodo(ctx context.Context, userId string, todoID string, todoItem *models.TodoItem) error {
+	if todoItem.Category == "" {
+		return errors.InvalidParam("分类不能为空")
+	}
+
 	dbTodo, err := s.todoDB.Todo.GetQuery().
 		UserId_Equal(userId).And().TodoId_Equal(todoID).
 		QueryOne(ctx, nil)
@@ -60,11 +64,11 @@ func (s *TodoService) UpdateTodo(ctx context.Context, userId string, todoID stri
 		return errors.NotFound("todo not exists")
 	}
 
-	dbTodo.TodoCategory = todoItemMutate.Category
-	dbTodo.TodoTitle = todoItemMutate.Title
-	dbTodo.TodoDesc = todoItemMutate.Desc
-	dbTodo.TodoStatus = string(todoItemMutate.Status)
-	dbTodo.TodoPriority = todoItemMutate.Priority
+	dbTodo.TodoCategory = todoItem.Category
+	dbTodo.TodoTitle = todoItem.Title
+	dbTodo.TodoDesc = todoItem.Desc
+	dbTodo.TodoStatus = string(todoItem.Status)
+	dbTodo.TodoPriority = todoItem.Priority
 
 	err = s.todoDB.Todo.Update(ctx, nil, dbTodo)
 	if err != nil {

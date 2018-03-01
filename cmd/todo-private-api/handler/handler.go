@@ -98,12 +98,12 @@ func (h *TodoHandler) RemoveTodo(p operations.RemoveTodoParams, userId interface
 }
 
 func (h *TodoHandler) GetTodoListByCategory(p operations.GetTodoListByCategoryParams, userId interface{}) middleware.Responder {
-	uid := userId.(string)
+	friendId := ""
 	if p.FriendID != nil {
-		uid = *p.FriendID
+		friendId = *p.FriendID
 	}
 
-	result, err := h.service.GetTodoListByCategory(context.Background(), uid)
+	result, err := h.service.GetTodoListByCategory(context.Background(), userId.(string), friendId)
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -129,6 +129,24 @@ func (h *TodoHandler) UpdateUserProfile(p operations.UpdateUserProfileParams, us
 	return operations.NewUpdateUserProfileOK()
 }
 
+func (h *TodoHandler) UpdateUserProfileTodoVisibility(p operations.UpdateUserProfileTodoVisibilityParams, userID interface{}) middleware.Responder {
+	err := h.service.UpdateUserProfileTodoVisibility(context.Background(), userID.(string), toTodoVisibility(p.Visibility))
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return operations.NewUpdateUserProfileTodoVisibilityOK()
+}
+
+func (h *TodoHandler) UpdateUserProfileUserName(p operations.UpdateUserProfileUserNameParams, userID interface{}) middleware.Responder {
+	err := h.service.UpdateUserProfileUserName(context.Background(), userID.(string), p.UserName)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return operations.NewUpdateUserProfileUserNameOK()
+}
+
 func (h *TodoHandler) GetFriendsList(p operations.GetFriendsListParams, userId interface{}) middleware.Responder {
 	query := &models.FriendsQuery{}
 	if p.PageSize != nil {
@@ -144,7 +162,7 @@ func (h *TodoHandler) GetFriendsList(p operations.GetFriendsListParams, userId i
 	}
 
 	response := &api.FriendInfoList{}
-	response.NextPageToken = nextPageToken
+	response.NextPageToken = &nextPageToken
 	response.Items = fromFriendInfoList(result)
 
 	return operations.NewGetFriendsListOK().WithPayload(response)

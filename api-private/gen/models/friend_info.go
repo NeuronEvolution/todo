@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // FriendInfo friend info
@@ -17,23 +18,42 @@ import (
 type FriendInfo struct {
 
 	// todo count
-	TodoCount int64 `json:"todoCount,omitempty"`
+	// Required: true
+	TodoCount *int64 `json:"todoCount"`
 
 	// todo visibility
-	TodoVisibility TodoVisibility `json:"todoVisibility,omitempty"`
+	// Required: true
+	TodoVisibility TodoVisibility `json:"todoVisibility"`
 
 	// user ID
-	UserID string `json:"userID,omitempty"`
+	// Required: true
+	UserID *string `json:"userID"`
 
 	// user name
-	UserName string `json:"userName,omitempty"`
+	// Required: true
+	UserName *string `json:"userName"`
 }
 
 // Validate validates this friend info
 func (m *FriendInfo) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateTodoCount(formats); err != nil {
+		// prop
+		res = append(res, err)
+	}
+
 	if err := m.validateTodoVisibility(formats); err != nil {
+		// prop
+		res = append(res, err)
+	}
+
+	if err := m.validateUserID(formats); err != nil {
+		// prop
+		res = append(res, err)
+	}
+
+	if err := m.validateUserName(formats); err != nil {
 		// prop
 		res = append(res, err)
 	}
@@ -44,16 +64,39 @@ func (m *FriendInfo) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *FriendInfo) validateTodoVisibility(formats strfmt.Registry) error {
+func (m *FriendInfo) validateTodoCount(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.TodoVisibility) { // not required
-		return nil
+	if err := validate.Required("todoCount", "body", m.TodoCount); err != nil {
+		return err
 	}
+
+	return nil
+}
+
+func (m *FriendInfo) validateTodoVisibility(formats strfmt.Registry) error {
 
 	if err := m.TodoVisibility.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("todoVisibility")
 		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *FriendInfo) validateUserID(formats strfmt.Registry) error {
+
+	if err := validate.Required("userID", "body", m.UserID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *FriendInfo) validateUserName(formats strfmt.Registry) error {
+
+	if err := validate.Required("userName", "body", m.UserName); err != nil {
 		return err
 	}
 
