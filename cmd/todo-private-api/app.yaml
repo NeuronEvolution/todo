@@ -1,0 +1,11 @@
+NAME: todo-private-api
+Version: 1.0.0
+
+-DEV:
+  PORT: 9001
+  DEBUG: true
+-TEST:
+  PORT: 9001
+  DEBUG: true
+-PROD:
+  PORT: 9001
