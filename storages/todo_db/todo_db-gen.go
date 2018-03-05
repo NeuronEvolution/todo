@@ -255,9 +255,11 @@ func (q *TodoQuery) UpdateVersion_Greater(v int64) *TodoQuery {
 func (q *TodoQuery) UpdateVersion_GreaterEqual(v int64) *TodoQuery {
 	return q.w("update_version>='" + fmt.Sprint(v) + "'")
 }
-func (q *TodoQuery) TodoId_Equal(v string) *TodoQuery    { return q.w("todo_id='" + fmt.Sprint(v) + "'") }
-func (q *TodoQuery) TodoId_NotEqual(v string) *TodoQuery { return q.w("todo_id<>'" + fmt.Sprint(v) + "'") }
-func (q *TodoQuery) TodoId_Less(v string) *TodoQuery     { return q.w("todo_id<'" + fmt.Sprint(v) + "'") }
+func (q *TodoQuery) TodoId_Equal(v string) *TodoQuery { return q.w("todo_id='" + fmt.Sprint(v) + "'") }
+func (q *TodoQuery) TodoId_NotEqual(v string) *TodoQuery {
+	return q.w("todo_id<>'" + fmt.Sprint(v) + "'")
+}
+func (q *TodoQuery) TodoId_Less(v string) *TodoQuery { return q.w("todo_id<'" + fmt.Sprint(v) + "'") }
 func (q *TodoQuery) TodoId_LessEqual(v string) *TodoQuery {
 	return q.w("todo_id<='" + fmt.Sprint(v) + "'")
 }
@@ -265,9 +267,11 @@ func (q *TodoQuery) TodoId_Greater(v string) *TodoQuery { return q.w("todo_id>'"
 func (q *TodoQuery) TodoId_GreaterEqual(v string) *TodoQuery {
 	return q.w("todo_id>='" + fmt.Sprint(v) + "'")
 }
-func (q *TodoQuery) UserId_Equal(v string) *TodoQuery    { return q.w("user_id='" + fmt.Sprint(v) + "'") }
-func (q *TodoQuery) UserId_NotEqual(v string) *TodoQuery { return q.w("user_id<>'" + fmt.Sprint(v) + "'") }
-func (q *TodoQuery) UserId_Less(v string) *TodoQuery     { return q.w("user_id<'" + fmt.Sprint(v) + "'") }
+func (q *TodoQuery) UserId_Equal(v string) *TodoQuery { return q.w("user_id='" + fmt.Sprint(v) + "'") }
+func (q *TodoQuery) UserId_NotEqual(v string) *TodoQuery {
+	return q.w("user_id<>'" + fmt.Sprint(v) + "'")
+}
+func (q *TodoQuery) UserId_Less(v string) *TodoQuery { return q.w("user_id<'" + fmt.Sprint(v) + "'") }
 func (q *TodoQuery) UserId_LessEqual(v string) *TodoQuery {
 	return q.w("user_id<='" + fmt.Sprint(v) + "'")
 }
@@ -311,11 +315,15 @@ func (q *TodoQuery) TodoTitle_Greater(v string) *TodoQuery {
 func (q *TodoQuery) TodoTitle_GreaterEqual(v string) *TodoQuery {
 	return q.w("todo_title>='" + fmt.Sprint(v) + "'")
 }
-func (q *TodoQuery) TodoDesc_Equal(v string) *TodoQuery { return q.w("todo_desc='" + fmt.Sprint(v) + "'") }
+func (q *TodoQuery) TodoDesc_Equal(v string) *TodoQuery {
+	return q.w("todo_desc='" + fmt.Sprint(v) + "'")
+}
 func (q *TodoQuery) TodoDesc_NotEqual(v string) *TodoQuery {
 	return q.w("todo_desc<>'" + fmt.Sprint(v) + "'")
 }
-func (q *TodoQuery) TodoDesc_Less(v string) *TodoQuery { return q.w("todo_desc<'" + fmt.Sprint(v) + "'") }
+func (q *TodoQuery) TodoDesc_Less(v string) *TodoQuery {
+	return q.w("todo_desc<'" + fmt.Sprint(v) + "'")
+}
 func (q *TodoQuery) TodoDesc_LessEqual(v string) *TodoQuery {
 	return q.w("todo_desc<='" + fmt.Sprint(v) + "'")
 }
@@ -680,11 +688,15 @@ func (q *UserProfileQuery) And() *UserProfileQuery   { return q.w(" AND ") }
 func (q *UserProfileQuery) Or() *UserProfileQuery    { return q.w(" OR ") }
 func (q *UserProfileQuery) Not() *UserProfileQuery   { return q.w(" NOT ") }
 
-func (q *UserProfileQuery) Id_Equal(v int64) *UserProfileQuery { return q.w("id='" + fmt.Sprint(v) + "'") }
+func (q *UserProfileQuery) Id_Equal(v int64) *UserProfileQuery {
+	return q.w("id='" + fmt.Sprint(v) + "'")
+}
 func (q *UserProfileQuery) Id_NotEqual(v int64) *UserProfileQuery {
 	return q.w("id<>'" + fmt.Sprint(v) + "'")
 }
-func (q *UserProfileQuery) Id_Less(v int64) *UserProfileQuery { return q.w("id<'" + fmt.Sprint(v) + "'") }
+func (q *UserProfileQuery) Id_Less(v int64) *UserProfileQuery {
+	return q.w("id<'" + fmt.Sprint(v) + "'")
+}
 func (q *UserProfileQuery) Id_LessEqual(v int64) *UserProfileQuery {
 	return q.w("id<='" + fmt.Sprint(v) + "'")
 }
@@ -995,6 +1007,15 @@ func (dao *UserProfileDao) QueryGroupBy(ctx context.Context, tx *wrap.Tx, groupB
 
 func (dao *UserProfileDao) GetQuery() *UserProfileQuery {
 	return NewUserProfileQuery(dao)
+}
+
+func (dao *UserProfileDao) UpdateUserName(ctx context.Context, tx *wrap.Tx, userName string, where string) (err error) {
+	_, err = dao.db.Exec(ctx, "UPDATE user_profile SET user_name=? WHERE ?", userName, where)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type DB struct {
