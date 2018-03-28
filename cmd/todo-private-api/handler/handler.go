@@ -39,7 +39,7 @@ func (h *TodoHandler) BearerAuth(token string) (userId interface{}, err error) {
 	}
 
 	if claims.Subject == "" {
-		return nil, errors.Unknown("claims.Subject nil")
+		return nil, errors.Unknown("验证失败： claims.Subject nil")
 	}
 
 	return claims.Subject, nil
@@ -183,5 +183,5 @@ func (h *TodoHandler) GetCategoryNameList(p operations.GetCategoryNameListParams
 		return errors.Wrap(err)
 	}
 
-	return operations.NewGetCategoryNameListOK().WithPayload(result)
+	return operations.NewGetCategoryNameListOK().WithPayload(fromCategoryInfoList(result))
 }

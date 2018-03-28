@@ -106,7 +106,7 @@ func init() {
             "schema": {
               "type": "array",
               "items": {
-                "type": "string"
+                "$ref": "#/definitions/CategoryInfo"
               }
             }
           }
@@ -350,6 +350,22 @@ func init() {
     }
   },
   "definitions": {
+    "CategoryInfo": {
+      "type": "object",
+      "required": [
+        "category",
+        "todoCount"
+      ],
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "todoCount": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
     "FriendInfo": {
       "type": "object",
       "required": [
@@ -572,7 +588,7 @@ func init() {
             "schema": {
               "type": "array",
               "items": {
-                "type": "string"
+                "$ref": "#/definitions/CategoryInfo"
               }
             }
           }
@@ -816,6 +832,22 @@ func init() {
     }
   },
   "definitions": {
+    "CategoryInfo": {
+      "type": "object",
+      "required": [
+        "category",
+        "todoCount"
+      ],
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "todoCount": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
     "FriendInfo": {
       "type": "object",
       "required": [

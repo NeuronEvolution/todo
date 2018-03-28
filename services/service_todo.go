@@ -30,13 +30,21 @@ func (s *TodoService) GetTodo(ctx context.Context, userId string, todoId string)
 	}
 
 	if dbTodo == nil {
-		return nil, errors.NotFound("todo not exists")
+		return nil, errors.NotFound("计划不存在å")
 	}
 
 	return todo_db.FromTodo(dbTodo), nil
 }
 
 func (s *TodoService) AddTodo(ctx context.Context, userId string, todoItem *models.TodoItem) (todoId string, err error) {
+	if todoItem.Category == "" {
+		return "", errors.InvalidParam("分类不能为空")
+	}
+
+	if todoItem.Title == "" {
+		return "", errors.InvalidParam("标题不能为空")
+	}
+
 	dbTodo := todo_db.ToTodo(todoItem)
 	dbTodo.UserId = userId
 	dbTodo.TodoId = rand.NextHex(16)
@@ -53,6 +61,10 @@ func (s *TodoService) UpdateTodo(ctx context.Context, userId string, todoID stri
 		return errors.InvalidParam("分类不能为空")
 	}
 
+	if todoItem.Title == "" {
+		return errors.InvalidParam("标题不能为空")
+	}
+
 	dbTodo, err := s.todoDB.Todo.GetQuery().
 		UserId_Equal(userId).And().TodoId_Equal(todoID).
 		QueryOne(ctx, nil)
@@ -61,7 +73,7 @@ func (s *TodoService) UpdateTodo(ctx context.Context, userId string, todoID stri
 	}
 
 	if dbTodo == nil {
-		return errors.NotFound("todo not exists")
+		return errors.NotFound("计划不存在")
 	}
 
 	dbTodo.TodoCategory = todoItem.Category
@@ -87,7 +99,7 @@ func (s *TodoService) RemoveTodo(ctx context.Context, userId string, todoId stri
 	}
 
 	if dbTodo == nil {
-		return errors.NotFound("todo not exists")
+		return errors.NotFound("计划不存在")
 	}
 
 	err = s.todoDB.Todo.Delete(ctx, nil, dbTodo.Id)

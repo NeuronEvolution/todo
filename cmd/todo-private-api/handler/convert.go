@@ -178,3 +178,28 @@ func fromFriendInfoList(p []*models.FriendInfo) (r []*api.FriendInfo) {
 
 	return r
 }
+
+func fromCategoryInfo(p *models.CategoryInfo) (r *api.CategoryInfo) {
+	if p == nil {
+		return nil
+	}
+
+	r = &api.CategoryInfo{}
+	r.Category = &p.Category
+	r.TodoCount = &p.TodoCount
+
+	return r
+}
+
+func fromCategoryInfoList(p []*models.CategoryInfo) (r []*api.CategoryInfo) {
+	if p == nil {
+		return nil
+	}
+
+	r = make([]*api.CategoryInfo, len(p))
+	for i, v := range p {
+		r[i] = fromCategoryInfo(v)
+	}
+
+	return r
+}

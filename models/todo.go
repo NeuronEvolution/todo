@@ -23,6 +23,11 @@ type TodoItemGroup struct {
 	TodoItemList []*TodoItem
 }
 
+type CategoryInfo struct {
+	Category  string
+	TodoCount int64
+}
+
 type TodoItemGroupArray []*TodoItemGroup
 
 func (array TodoItemGroupArray) Len() int {

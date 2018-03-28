@@ -14,7 +14,7 @@ func (s *TodoService) GetFriendsList(ctx context.Context, userID string, query *
 	if query.PageToken != "" {
 		limitStart, err = strconv.ParseInt(query.PageToken, 10, 64)
 		if err != nil {
-			return nil, "", errors.InvalidParam("invalid PageToken")
+			return nil, "", errors.InvalidParam("PageToken无效")
 		}
 	}
 	limitCount := query.PageSize
@@ -46,7 +46,7 @@ func (s *TodoService) GetFriendsList(ctx context.Context, userID string, query *
 		}
 
 		e.UserName = dbUserProfile.UserName
-		e.TodoVisibility=models.TodoVisibility(dbUserProfile.TodoVisibility)
+		e.TodoVisibility = models.TodoVisibility(dbUserProfile.TodoVisibility)
 
 		result = append(result, e)
 	}
@@ -75,7 +75,7 @@ func (s *TodoService) GetFriend(ctx context.Context, userID string, friendID str
 	friend = &models.FriendInfo{}
 	friend.UserID = dbFriendProfile.UserId
 	friend.UserName = dbFriendProfile.UserName
-	friend.TodoVisibility=models.TodoVisibility(dbFriendProfile.TodoVisibility)
+	friend.TodoVisibility = models.TodoVisibility(dbFriendProfile.TodoVisibility)
 	friend.TodoCount = todoCount
 
 	return friend, nil

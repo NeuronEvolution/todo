@@ -9,6 +9,8 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/runtime"
+
+	models "github.com/NeuronEvolution/todo/api-private/gen/models"
 )
 
 // GetCategoryNameListOKCode is the HTTP code returned for type GetCategoryNameListOK
@@ -23,7 +25,7 @@ type GetCategoryNameListOK struct {
 	/*
 	  In: Body
 	*/
-	Payload []string `json:"body,omitempty"`
+	Payload []*models.CategoryInfo `json:"body,omitempty"`
 }
 
 // NewGetCategoryNameListOK creates GetCategoryNameListOK with default headers values
@@ -33,13 +35,13 @@ func NewGetCategoryNameListOK() *GetCategoryNameListOK {
 }
 
 // WithPayload adds the payload to the get category name list o k response
-func (o *GetCategoryNameListOK) WithPayload(payload []string) *GetCategoryNameListOK {
+func (o *GetCategoryNameListOK) WithPayload(payload []*models.CategoryInfo) *GetCategoryNameListOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get category name list o k response
-func (o *GetCategoryNameListOK) SetPayload(payload []string) {
+func (o *GetCategoryNameListOK) SetPayload(payload []*models.CategoryInfo) {
 	o.Payload = payload
 }
 
@@ -49,7 +51,7 @@ func (o *GetCategoryNameListOK) WriteResponse(rw http.ResponseWriter, producer r
 	rw.WriteHeader(200)
 	payload := o.Payload
 	if payload == nil {
-		payload = make([]string, 0, 50)
+		payload = make([]*models.CategoryInfo, 0, 50)
 	}
 
 	if err := producer.Produce(rw, payload); err != nil {
