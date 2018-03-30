@@ -1,13 +1,13 @@
 package handler
 
 import (
-	"context"
 	api "github.com/NeuronEvolution/todo/api-private/gen/models"
 	"github.com/NeuronEvolution/todo/api-private/gen/restapi/operations"
 	"github.com/NeuronEvolution/todo/models"
 	"github.com/NeuronEvolution/todo/services"
 	"github.com/NeuronFramework/errors"
 	"github.com/NeuronFramework/log"
+	"github.com/NeuronFramework/restful"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-openapi/runtime/middleware"
 	"go.uber.org/zap"
@@ -51,7 +51,7 @@ func (h *TodoHandler) GetTodoList(p operations.GetTodoListParams, userId interfa
 		uid = *p.FriendID
 	}
 
-	result, err := h.service.GetTodoList(context.Background(), uid)
+	result, err := h.service.GetTodoList(restful.NewContext(p.HTTPRequest), uid)
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -60,7 +60,7 @@ func (h *TodoHandler) GetTodoList(p operations.GetTodoListParams, userId interfa
 }
 
 func (h *TodoHandler) GetTodo(p operations.GetTodoParams, userId interface{}) middleware.Responder {
-	todoItem, err := h.service.GetTodo(context.Background(), userId.(string), p.TodoID)
+	todoItem, err := h.service.GetTodo(restful.NewContext(p.HTTPRequest), userId.(string), p.TodoID)
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -69,7 +69,7 @@ func (h *TodoHandler) GetTodo(p operations.GetTodoParams, userId interface{}) mi
 }
 
 func (h *TodoHandler) AddTodo(p operations.AddTodoParams, userId interface{}) middleware.Responder {
-	todoId, err := h.service.AddTodo(context.Background(), userId.(string), toTodoItem(p.TodoItem))
+	todoId, err := h.service.AddTodo(restful.NewContext(p.HTTPRequest), userId.(string), toTodoItem(p.TodoItem))
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -80,7 +80,7 @@ func (h *TodoHandler) AddTodo(p operations.AddTodoParams, userId interface{}) mi
 func (h *TodoHandler) UpdateTodo(p operations.UpdateTodoParams, userId interface{}) middleware.Responder {
 	todoItem := toTodoItem(p.TodoItem)
 
-	err := h.service.UpdateTodo(context.Background(), userId.(string), p.TodoID, todoItem)
+	err := h.service.UpdateTodo(restful.NewContext(p.HTTPRequest), userId.(string), p.TodoID, todoItem)
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -89,7 +89,7 @@ func (h *TodoHandler) UpdateTodo(p operations.UpdateTodoParams, userId interface
 }
 
 func (h *TodoHandler) RemoveTodo(p operations.RemoveTodoParams, userId interface{}) middleware.Responder {
-	err := h.service.RemoveTodo(context.Background(), userId.(string), p.TodoID)
+	err := h.service.RemoveTodo(restful.NewContext(p.HTTPRequest), userId.(string), p.TodoID)
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -103,7 +103,7 @@ func (h *TodoHandler) GetTodoListByCategory(p operations.GetTodoListByCategoryPa
 		friendId = *p.FriendID
 	}
 
-	result, err := h.service.GetTodoListByCategory(context.Background(), userId.(string), friendId)
+	result, err := h.service.GetTodoListByCategory(restful.NewContext(p.HTTPRequest), userId.(string), friendId)
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -112,7 +112,7 @@ func (h *TodoHandler) GetTodoListByCategory(p operations.GetTodoListByCategoryPa
 }
 
 func (h *TodoHandler) GetUserProfile(p operations.GetUserProfileParams, userId interface{}) middleware.Responder {
-	userProfile, err := h.service.GetUserProfile(context.Background(), userId.(string))
+	userProfile, err := h.service.GetUserProfile(restful.NewContext(p.HTTPRequest), userId.(string))
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -121,7 +121,7 @@ func (h *TodoHandler) GetUserProfile(p operations.GetUserProfileParams, userId i
 }
 
 func (h *TodoHandler) UpdateUserProfile(p operations.UpdateUserProfileParams, userId interface{}) middleware.Responder {
-	err := h.service.UpdateUserProfile(context.Background(), userId.(string), toUserProfile(p.UserProfile))
+	err := h.service.UpdateUserProfile(restful.NewContext(p.HTTPRequest), userId.(string), toUserProfile(p.UserProfile))
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -130,7 +130,7 @@ func (h *TodoHandler) UpdateUserProfile(p operations.UpdateUserProfileParams, us
 }
 
 func (h *TodoHandler) UpdateUserProfileTodoVisibility(p operations.UpdateUserProfileTodoVisibilityParams, userID interface{}) middleware.Responder {
-	err := h.service.UpdateUserProfileTodoVisibility(context.Background(), userID.(string), toTodoVisibility(p.Visibility))
+	err := h.service.UpdateUserProfileTodoVisibility(restful.NewContext(p.HTTPRequest), userID.(string), toTodoVisibility(p.Visibility))
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -139,7 +139,7 @@ func (h *TodoHandler) UpdateUserProfileTodoVisibility(p operations.UpdateUserPro
 }
 
 func (h *TodoHandler) UpdateUserProfileUserName(p operations.UpdateUserProfileUserNameParams, userID interface{}) middleware.Responder {
-	err := h.service.UpdateUserProfileUserName(context.Background(), userID.(string), p.UserName)
+	err := h.service.UpdateUserProfileUserName(restful.NewContext(p.HTTPRequest), userID.(string), p.UserName)
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -156,7 +156,7 @@ func (h *TodoHandler) GetFriendsList(p operations.GetFriendsListParams, userId i
 		query.PageToken = *p.PageToken
 	}
 
-	result, nextPageToken, err := h.service.GetFriendsList(context.Background(), userId.(string), query)
+	result, nextPageToken, err := h.service.GetFriendsList(restful.NewContext(p.HTTPRequest), userId.(string), query)
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -169,7 +169,7 @@ func (h *TodoHandler) GetFriendsList(p operations.GetFriendsListParams, userId i
 }
 
 func (h *TodoHandler) GetFriend(p operations.GetFriendParams, userId interface{}) middleware.Responder {
-	friendInfo, err := h.service.GetFriend(context.Background(), userId.(string), p.FriendID)
+	friendInfo, err := h.service.GetFriend(restful.NewContext(p.HTTPRequest), userId.(string), p.FriendID)
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -178,7 +178,7 @@ func (h *TodoHandler) GetFriend(p operations.GetFriendParams, userId interface{}
 }
 
 func (h *TodoHandler) GetCategoryNameList(p operations.GetCategoryNameListParams, userId interface{}) middleware.Responder {
-	result, err := h.service.GetCategoryNameList(context.Background(), userId.(string))
+	result, err := h.service.GetCategoryNameList(restful.NewContext(p.HTTPRequest), userId.(string))
 	if err != nil {
 		return errors.Wrap(err)
 	}

@@ -1,14 +1,14 @@
 package services
 
 import (
-	"context"
 	"github.com/NeuronEvolution/todo/models"
 	"github.com/NeuronEvolution/todo/storages/todo_db"
 	"github.com/NeuronFramework/errors"
+	"github.com/NeuronFramework/restful"
 	"sort"
 )
 
-func (s *TodoService) GetTodoListByCategory(ctx context.Context, userId string, friendId string) (result []*models.TodoItemGroup, err error) {
+func (s *TodoService) GetTodoListByCategory(ctx *restful.Context, userId string, friendId string) (result []*models.TodoItemGroup, err error) {
 	targetUserID := userId
 	if friendId != "" && friendId != userId {
 		targetUserID = friendId
@@ -51,6 +51,12 @@ func (s *TodoService) GetTodoListByCategory(ctx context.Context, userId string, 
 	}
 
 	sort.Sort(models.TodoItemGroupArray(result))
+
+	s.addOperation(ctx, &models.Operation{
+		OperationType: models.OperationAccessLog,
+		UserID:        userId,
+		ApiName:       "GetTodoListByCategory",
+	})
 
 	return result, nil
 }

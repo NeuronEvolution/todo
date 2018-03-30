@@ -1,12 +1,12 @@
 package services
 
 import (
-	"context"
 	"github.com/NeuronEvolution/todo/models"
 	"github.com/NeuronEvolution/todo/storages/todo_db"
+	"github.com/NeuronFramework/restful"
 )
 
-func (s *TodoService) GetCategoryNameList(ctx context.Context, userId string) (result []*models.CategoryInfo, err error) {
+func (s *TodoService) GetCategoryNameList(ctx *restful.Context, userId string) (result []*models.CategoryInfo, err error) {
 	rows, err := s.todoDB.Todo.GetQuery().UserId_Equal(userId).
 		GroupBy(todo_db.TODO_FIELD_TODO_CATEGORY).
 		OrderByGroupCount(false).QueryGroupBy(ctx, nil)
@@ -27,6 +27,12 @@ func (s *TodoService) GetCategoryNameList(ctx context.Context, userId string) (r
 	if rows.Err() != nil {
 		return nil, rows.Err()
 	}
+
+	s.addOperation(ctx, &models.Operation{
+		OperationType: models.OperationAccessLog,
+		UserID:        userId,
+		ApiName:       "GetCategoryNameList",
+	})
 
 	return result, nil
 }

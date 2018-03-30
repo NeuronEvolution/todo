@@ -1,15 +1,15 @@
 package services
 
 import (
-	"context"
 	"github.com/NeuronEvolution/todo/models"
 	"github.com/NeuronEvolution/todo/storages/todo_db"
 	"github.com/NeuronFramework/errors"
+	"github.com/NeuronFramework/restful"
 	"go.uber.org/zap"
 	"strconv"
 )
 
-func (s *TodoService) GetFriendsList(ctx context.Context, userID string, query *models.FriendsQuery) (result []*models.FriendInfo, nextPageToken string, err error) {
+func (s *TodoService) GetFriendsList(ctx *restful.Context, userID string, query *models.FriendsQuery) (result []*models.FriendInfo, nextPageToken string, err error) {
 	limitStart := int64(0)
 	if query.PageToken != "" {
 		limitStart, err = strconv.ParseInt(query.PageToken, 10, 64)
@@ -54,10 +54,16 @@ func (s *TodoService) GetFriendsList(ctx context.Context, userID string, query *
 		return nil, "", rows.Err()
 	}
 
+	s.addOperation(ctx, &models.Operation{
+		OperationType: models.OperationAccessLog,
+		UserID:        userID,
+		ApiName:       "GetFriendsList",
+	})
+
 	return result, strconv.FormatInt(limitStart+limitCount, 10), nil
 }
 
-func (s *TodoService) GetFriend(ctx context.Context, userID string, friendID string) (friend *models.FriendInfo, err error) {
+func (s *TodoService) GetFriend(ctx *restful.Context, userID string, friendID string) (friend *models.FriendInfo, err error) {
 	dbFriendProfile, err := s.todoDB.UserProfile.GetQuery().UserId_Equal(friendID).QueryOne(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -77,6 +83,13 @@ func (s *TodoService) GetFriend(ctx context.Context, userID string, friendID str
 	friend.UserName = dbFriendProfile.UserName
 	friend.TodoVisibility = models.TodoVisibility(dbFriendProfile.TodoVisibility)
 	friend.TodoCount = todoCount
+
+	s.addOperation(ctx, &models.Operation{
+		OperationType: models.OperationAccessLog,
+		UserID:        userID,
+		FriendID:      friendID,
+		ApiName:       "GetFriend",
+	})
 
 	return friend, nil
 }

@@ -59,6 +59,508 @@ func (q *BaseQuery) buildQueryString() string {
 	return buf.String()
 }
 
+const OPERATION_TABLE_NAME = "operation"
+
+type OPERATION_FIELD string
+
+const OPERATION_FIELD_ID = OPERATION_FIELD("id")
+const OPERATION_FIELD_CREATE_TIME = OPERATION_FIELD("create_time")
+const OPERATION_FIELD_OPERATION_TYPE = OPERATION_FIELD("operation_type")
+const OPERATION_FIELD_USER_AGENT = OPERATION_FIELD("user_agent")
+const OPERATION_FIELD_USER_ID = OPERATION_FIELD("user_id")
+const OPERATION_FIELD_API_NAME = OPERATION_FIELD("api_name")
+const OPERATION_FIELD_FRIEND_ID = OPERATION_FIELD("friend_id")
+const OPERATION_FIELD_TODO_ID = OPERATION_FIELD("todo_id")
+const OPERATION_FIELD_TODO_ITEM = OPERATION_FIELD("todo_item")
+const OPERATION_FIELD_USER_PROFILE = OPERATION_FIELD("user_profile")
+
+const OPERATION_ALL_FIELDS_STRING = "id,create_time,operation_type,user_agent,user_id,api_name,friend_id,todo_id,todo_item,user_profile"
+
+var OPERATION_ALL_FIELDS = []string{
+	"id",
+	"create_time",
+	"operation_type",
+	"user_agent",
+	"user_id",
+	"api_name",
+	"friend_id",
+	"todo_id",
+	"todo_item",
+	"user_profile",
+}
+
+type Operation struct {
+	Id            uint64 //size=20
+	CreateTime    time.Time
+	OperationType string //size=32
+	UserAgent     string //size=256
+	UserId        string //size=128
+	ApiName       string //size=128
+	FriendId      string //size=128
+	TodoId        string //size=128
+	TodoItem      string //size=1024
+	UserProfile   string //size=1024
+}
+
+type OperationQuery struct {
+	BaseQuery
+	dao *OperationDao
+}
+
+func NewOperationQuery(dao *OperationDao) *OperationQuery {
+	q := &OperationQuery{}
+	q.dao = dao
+
+	return q
+}
+
+func (q *OperationQuery) QueryOne(ctx context.Context, tx *wrap.Tx) (*Operation, error) {
+	return q.dao.QueryOne(ctx, tx, q.buildQueryString())
+}
+
+func (q *OperationQuery) QueryList(ctx context.Context, tx *wrap.Tx) (list []*Operation, err error) {
+	return q.dao.QueryList(ctx, tx, q.buildQueryString())
+}
+
+func (q *OperationQuery) QueryCount(ctx context.Context, tx *wrap.Tx) (count int64, err error) {
+	return q.dao.QueryCount(ctx, tx, q.buildQueryString())
+}
+
+func (q *OperationQuery) QueryGroupBy(ctx context.Context, tx *wrap.Tx) (rows *wrap.Rows, err error) {
+	return q.dao.QueryGroupBy(ctx, tx, q.groupByFields, q.buildQueryString())
+}
+
+func (q *OperationQuery) ForUpdate() *OperationQuery {
+	q.forUpdate = true
+	return q
+}
+
+func (q *OperationQuery) ForShare() *OperationQuery {
+	q.forShare = true
+	return q
+}
+
+func (q *OperationQuery) GroupBy(fields ...OPERATION_FIELD) *OperationQuery {
+	q.groupByFields = make([]string, len(fields))
+	for i, v := range fields {
+		q.groupByFields[i] = string(v)
+	}
+	return q
+}
+
+func (q *OperationQuery) Limit(startIncluded int64, count int64) *OperationQuery {
+	q.limit = fmt.Sprintf(" limit %d,%d", startIncluded, count)
+	return q
+}
+
+func (q *OperationQuery) OrderBy(fieldName OPERATION_FIELD, asc bool) *OperationQuery {
+	if q.order != "" {
+		q.order += ","
+	}
+	q.order += string(fieldName) + " "
+	if asc {
+		q.order += "asc"
+	} else {
+		q.order += "desc"
+	}
+
+	return q
+}
+
+func (q *OperationQuery) OrderByGroupCount(asc bool) *OperationQuery {
+	if q.order != "" {
+		q.order += ","
+	}
+	q.order += "count(1) "
+	if asc {
+		q.order += "asc"
+	} else {
+		q.order += "desc"
+	}
+
+	return q
+}
+
+func (q *OperationQuery) w(format string, a ...interface{}) *OperationQuery {
+	q.where += fmt.Sprintf(format, a...)
+	return q
+}
+
+func (q *OperationQuery) Left() *OperationQuery  { return q.w(" ( ") }
+func (q *OperationQuery) Right() *OperationQuery { return q.w(" ) ") }
+func (q *OperationQuery) And() *OperationQuery   { return q.w(" AND ") }
+func (q *OperationQuery) Or() *OperationQuery    { return q.w(" OR ") }
+func (q *OperationQuery) Not() *OperationQuery   { return q.w(" NOT ") }
+
+func (q *OperationQuery) Id_Equal(v uint64) *OperationQuery { return q.w("id='" + fmt.Sprint(v) + "'") }
+func (q *OperationQuery) Id_NotEqual(v uint64) *OperationQuery {
+	return q.w("id<>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) Id_Less(v uint64) *OperationQuery { return q.w("id<'" + fmt.Sprint(v) + "'") }
+func (q *OperationQuery) Id_LessEqual(v uint64) *OperationQuery {
+	return q.w("id<='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) Id_Greater(v uint64) *OperationQuery { return q.w("id>'" + fmt.Sprint(v) + "'") }
+func (q *OperationQuery) Id_GreaterEqual(v uint64) *OperationQuery {
+	return q.w("id>='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) CreateTime_Equal(v time.Time) *OperationQuery {
+	return q.w("create_time='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) CreateTime_NotEqual(v time.Time) *OperationQuery {
+	return q.w("create_time<>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) CreateTime_Less(v time.Time) *OperationQuery {
+	return q.w("create_time<'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) CreateTime_LessEqual(v time.Time) *OperationQuery {
+	return q.w("create_time<='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) CreateTime_Greater(v time.Time) *OperationQuery {
+	return q.w("create_time>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) CreateTime_GreaterEqual(v time.Time) *OperationQuery {
+	return q.w("create_time>='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) OperationType_Equal(v string) *OperationQuery {
+	return q.w("operation_type='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) OperationType_NotEqual(v string) *OperationQuery {
+	return q.w("operation_type<>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) OperationType_Less(v string) *OperationQuery {
+	return q.w("operation_type<'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) OperationType_LessEqual(v string) *OperationQuery {
+	return q.w("operation_type<='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) OperationType_Greater(v string) *OperationQuery {
+	return q.w("operation_type>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) OperationType_GreaterEqual(v string) *OperationQuery {
+	return q.w("operation_type>='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) UserAgent_Equal(v string) *OperationQuery {
+	return q.w("user_agent='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) UserAgent_NotEqual(v string) *OperationQuery {
+	return q.w("user_agent<>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) UserAgent_Less(v string) *OperationQuery {
+	return q.w("user_agent<'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) UserAgent_LessEqual(v string) *OperationQuery {
+	return q.w("user_agent<='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) UserAgent_Greater(v string) *OperationQuery {
+	return q.w("user_agent>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) UserAgent_GreaterEqual(v string) *OperationQuery {
+	return q.w("user_agent>='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) UserId_Equal(v string) *OperationQuery {
+	return q.w("user_id='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) UserId_NotEqual(v string) *OperationQuery {
+	return q.w("user_id<>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) UserId_Less(v string) *OperationQuery {
+	return q.w("user_id<'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) UserId_LessEqual(v string) *OperationQuery {
+	return q.w("user_id<='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) UserId_Greater(v string) *OperationQuery {
+	return q.w("user_id>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) UserId_GreaterEqual(v string) *OperationQuery {
+	return q.w("user_id>='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) ApiName_Equal(v string) *OperationQuery {
+	return q.w("api_name='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) ApiName_NotEqual(v string) *OperationQuery {
+	return q.w("api_name<>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) ApiName_Less(v string) *OperationQuery {
+	return q.w("api_name<'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) ApiName_LessEqual(v string) *OperationQuery {
+	return q.w("api_name<='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) ApiName_Greater(v string) *OperationQuery {
+	return q.w("api_name>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) ApiName_GreaterEqual(v string) *OperationQuery {
+	return q.w("api_name>='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) FriendId_Equal(v string) *OperationQuery {
+	return q.w("friend_id='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) FriendId_NotEqual(v string) *OperationQuery {
+	return q.w("friend_id<>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) FriendId_Less(v string) *OperationQuery {
+	return q.w("friend_id<'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) FriendId_LessEqual(v string) *OperationQuery {
+	return q.w("friend_id<='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) FriendId_Greater(v string) *OperationQuery {
+	return q.w("friend_id>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) FriendId_GreaterEqual(v string) *OperationQuery {
+	return q.w("friend_id>='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) TodoId_Equal(v string) *OperationQuery {
+	return q.w("todo_id='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) TodoId_NotEqual(v string) *OperationQuery {
+	return q.w("todo_id<>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) TodoId_Less(v string) *OperationQuery {
+	return q.w("todo_id<'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) TodoId_LessEqual(v string) *OperationQuery {
+	return q.w("todo_id<='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) TodoId_Greater(v string) *OperationQuery {
+	return q.w("todo_id>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) TodoId_GreaterEqual(v string) *OperationQuery {
+	return q.w("todo_id>='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) TodoItem_Equal(v string) *OperationQuery {
+	return q.w("todo_item='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) TodoItem_NotEqual(v string) *OperationQuery {
+	return q.w("todo_item<>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) TodoItem_Less(v string) *OperationQuery {
+	return q.w("todo_item<'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) TodoItem_LessEqual(v string) *OperationQuery {
+	return q.w("todo_item<='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) TodoItem_Greater(v string) *OperationQuery {
+	return q.w("todo_item>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) TodoItem_GreaterEqual(v string) *OperationQuery {
+	return q.w("todo_item>='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) UserProfile_Equal(v string) *OperationQuery {
+	return q.w("user_profile='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) UserProfile_NotEqual(v string) *OperationQuery {
+	return q.w("user_profile<>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) UserProfile_Less(v string) *OperationQuery {
+	return q.w("user_profile<'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) UserProfile_LessEqual(v string) *OperationQuery {
+	return q.w("user_profile<='" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) UserProfile_Greater(v string) *OperationQuery {
+	return q.w("user_profile>'" + fmt.Sprint(v) + "'")
+}
+func (q *OperationQuery) UserProfile_GreaterEqual(v string) *OperationQuery {
+	return q.w("user_profile>='" + fmt.Sprint(v) + "'")
+}
+
+type OperationDao struct {
+	logger     *zap.Logger
+	db         *DB
+	insertStmt *wrap.Stmt
+	updateStmt *wrap.Stmt
+	deleteStmt *wrap.Stmt
+}
+
+func NewOperationDao(db *DB) (t *OperationDao, err error) {
+	t = &OperationDao{}
+	t.logger = log.TypedLogger(t)
+	t.db = db
+	err = t.init()
+	if err != nil {
+		return nil, err
+	}
+
+	return t, nil
+}
+
+func (dao *OperationDao) init() (err error) {
+	err = dao.prepareInsertStmt()
+	if err != nil {
+		return err
+	}
+
+	err = dao.prepareUpdateStmt()
+	if err != nil {
+		return err
+	}
+
+	err = dao.prepareDeleteStmt()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (dao *OperationDao) prepareInsertStmt() (err error) {
+	dao.insertStmt, err = dao.db.Prepare(context.Background(), "INSERT INTO operation (operation_type,user_agent,user_id,api_name,friend_id,todo_id,todo_item,user_profile) VALUES (?,?,?,?,?,?,?,?)")
+	return err
+}
+
+func (dao *OperationDao) prepareUpdateStmt() (err error) {
+	dao.updateStmt, err = dao.db.Prepare(context.Background(), "UPDATE operation SET operation_type=?,user_agent=?,user_id=?,api_name=?,friend_id=?,todo_id=?,todo_item=?,user_profile=? WHERE id=?")
+	return err
+}
+
+func (dao *OperationDao) prepareDeleteStmt() (err error) {
+	dao.deleteStmt, err = dao.db.Prepare(context.Background(), "DELETE FROM operation WHERE id=?")
+	return err
+}
+
+func (dao *OperationDao) Insert(ctx context.Context, tx *wrap.Tx, e *Operation) (id int64, err error) {
+	stmt := dao.insertStmt
+	if tx != nil {
+		stmt = tx.Stmt(ctx, stmt)
+	}
+
+	result, err := stmt.Exec(ctx, e.OperationType, e.UserAgent, e.UserId, e.ApiName, e.FriendId, e.TodoId, e.TodoItem, e.UserProfile)
+	if err != nil {
+		return 0, err
+	}
+
+	id, err = result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+func (dao *OperationDao) Update(ctx context.Context, tx *wrap.Tx, e *Operation) (err error) {
+	stmt := dao.updateStmt
+	if tx != nil {
+		stmt = tx.Stmt(ctx, stmt)
+	}
+
+	_, err = stmt.Exec(ctx, e.OperationType, e.UserAgent, e.UserId, e.ApiName, e.FriendId, e.TodoId, e.TodoItem, e.UserProfile, e.Id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (dao *OperationDao) Delete(ctx context.Context, tx *wrap.Tx, id uint64) (err error) {
+	stmt := dao.deleteStmt
+	if tx != nil {
+		stmt = tx.Stmt(ctx, stmt)
+	}
+
+	_, err = stmt.Exec(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (dao *OperationDao) scanRow(row *wrap.Row) (*Operation, error) {
+	e := &Operation{}
+	err := row.Scan(&e.Id, &e.CreateTime, &e.OperationType, &e.UserAgent, &e.UserId, &e.ApiName, &e.FriendId, &e.TodoId, &e.TodoItem, &e.UserProfile)
+	if err != nil {
+		if err == wrap.ErrNoRows {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	return e, nil
+}
+
+func (dao *OperationDao) scanRows(rows *wrap.Rows) (list []*Operation, err error) {
+	list = make([]*Operation, 0)
+	for rows.Next() {
+		e := Operation{}
+		err = rows.Scan(&e.Id, &e.CreateTime, &e.OperationType, &e.UserAgent, &e.UserId, &e.ApiName, &e.FriendId, &e.TodoId, &e.TodoItem, &e.UserProfile)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, &e)
+	}
+	if rows.Err() != nil {
+		err = rows.Err()
+		return nil, err
+	}
+
+	return list, nil
+}
+
+func (dao *OperationDao) QueryOne(ctx context.Context, tx *wrap.Tx, query string) (*Operation, error) {
+	querySql := "SELECT " + OPERATION_ALL_FIELDS_STRING + " FROM operation " + query
+	var row *wrap.Row
+	if tx == nil {
+		row = dao.db.QueryRow(ctx, querySql)
+	} else {
+		row = tx.QueryRow(ctx, querySql)
+	}
+	return dao.scanRow(row)
+}
+
+func (dao *OperationDao) QueryList(ctx context.Context, tx *wrap.Tx, query string) (list []*Operation, err error) {
+	querySql := "SELECT " + OPERATION_ALL_FIELDS_STRING + " FROM operation " + query
+	var rows *wrap.Rows
+	if tx == nil {
+		rows, err = dao.db.Query(ctx, querySql)
+	} else {
+		rows, err = tx.Query(ctx, querySql)
+	}
+	if err != nil {
+		dao.logger.Error("sqlDriver", zap.Error(err))
+		return nil, err
+	}
+
+	return dao.scanRows(rows)
+}
+
+func (dao *OperationDao) QueryCount(ctx context.Context, tx *wrap.Tx, query string) (count int64, err error) {
+	querySql := "SELECT COUNT(1) FROM operation " + query
+	var row *wrap.Row
+	if tx == nil {
+		row = dao.db.QueryRow(ctx, querySql)
+	} else {
+		row = tx.QueryRow(ctx, querySql)
+	}
+	if err != nil {
+		dao.logger.Error("sqlDriver", zap.Error(err))
+		return 0, err
+	}
+
+	err = row.Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (dao *OperationDao) QueryGroupBy(ctx context.Context, tx *wrap.Tx, groupByFields []string, query string) (rows *wrap.Rows, err error) {
+	querySql := "SELECT " + strings.Join(groupByFields, ",") + ",count(1) FROM operation " + query
+	if tx == nil {
+		return dao.db.Query(ctx, querySql)
+	} else {
+		return tx.Query(ctx, querySql)
+	}
+}
+
+func (dao *OperationDao) GetQuery() *OperationQuery {
+	return NewOperationQuery(dao)
+}
+
 const TODO_TABLE_NAME = "todo"
 
 type TODO_FIELD string
@@ -98,8 +600,8 @@ type Todo struct {
 	UpdateVersion int64  //size=20
 	TodoId        string //size=128
 	UserId        string //size=128
-	TodoCategory  string //size=32
-	TodoTitle     string //size=32
+	TodoCategory  string //size=128
+	TodoTitle     string //size=128
 	TodoDesc      string //size=1024
 	TodoStatus    string //size=32
 	TodoPriority  int32  //size=10
@@ -255,11 +757,9 @@ func (q *TodoQuery) UpdateVersion_Greater(v int64) *TodoQuery {
 func (q *TodoQuery) UpdateVersion_GreaterEqual(v int64) *TodoQuery {
 	return q.w("update_version>='" + fmt.Sprint(v) + "'")
 }
-func (q *TodoQuery) TodoId_Equal(v string) *TodoQuery { return q.w("todo_id='" + fmt.Sprint(v) + "'") }
-func (q *TodoQuery) TodoId_NotEqual(v string) *TodoQuery {
-	return q.w("todo_id<>'" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoId_Less(v string) *TodoQuery { return q.w("todo_id<'" + fmt.Sprint(v) + "'") }
+func (q *TodoQuery) TodoId_Equal(v string) *TodoQuery    { return q.w("todo_id='" + fmt.Sprint(v) + "'") }
+func (q *TodoQuery) TodoId_NotEqual(v string) *TodoQuery { return q.w("todo_id<>'" + fmt.Sprint(v) + "'") }
+func (q *TodoQuery) TodoId_Less(v string) *TodoQuery     { return q.w("todo_id<'" + fmt.Sprint(v) + "'") }
 func (q *TodoQuery) TodoId_LessEqual(v string) *TodoQuery {
 	return q.w("todo_id<='" + fmt.Sprint(v) + "'")
 }
@@ -267,11 +767,9 @@ func (q *TodoQuery) TodoId_Greater(v string) *TodoQuery { return q.w("todo_id>'"
 func (q *TodoQuery) TodoId_GreaterEqual(v string) *TodoQuery {
 	return q.w("todo_id>='" + fmt.Sprint(v) + "'")
 }
-func (q *TodoQuery) UserId_Equal(v string) *TodoQuery { return q.w("user_id='" + fmt.Sprint(v) + "'") }
-func (q *TodoQuery) UserId_NotEqual(v string) *TodoQuery {
-	return q.w("user_id<>'" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) UserId_Less(v string) *TodoQuery { return q.w("user_id<'" + fmt.Sprint(v) + "'") }
+func (q *TodoQuery) UserId_Equal(v string) *TodoQuery    { return q.w("user_id='" + fmt.Sprint(v) + "'") }
+func (q *TodoQuery) UserId_NotEqual(v string) *TodoQuery { return q.w("user_id<>'" + fmt.Sprint(v) + "'") }
+func (q *TodoQuery) UserId_Less(v string) *TodoQuery     { return q.w("user_id<'" + fmt.Sprint(v) + "'") }
 func (q *TodoQuery) UserId_LessEqual(v string) *TodoQuery {
 	return q.w("user_id<='" + fmt.Sprint(v) + "'")
 }
@@ -315,15 +813,11 @@ func (q *TodoQuery) TodoTitle_Greater(v string) *TodoQuery {
 func (q *TodoQuery) TodoTitle_GreaterEqual(v string) *TodoQuery {
 	return q.w("todo_title>='" + fmt.Sprint(v) + "'")
 }
-func (q *TodoQuery) TodoDesc_Equal(v string) *TodoQuery {
-	return q.w("todo_desc='" + fmt.Sprint(v) + "'")
-}
+func (q *TodoQuery) TodoDesc_Equal(v string) *TodoQuery { return q.w("todo_desc='" + fmt.Sprint(v) + "'") }
 func (q *TodoQuery) TodoDesc_NotEqual(v string) *TodoQuery {
 	return q.w("todo_desc<>'" + fmt.Sprint(v) + "'")
 }
-func (q *TodoQuery) TodoDesc_Less(v string) *TodoQuery {
-	return q.w("todo_desc<'" + fmt.Sprint(v) + "'")
-}
+func (q *TodoQuery) TodoDesc_Less(v string) *TodoQuery { return q.w("todo_desc<'" + fmt.Sprint(v) + "'") }
 func (q *TodoQuery) TodoDesc_LessEqual(v string) *TodoQuery {
 	return q.w("todo_desc<='" + fmt.Sprint(v) + "'")
 }
@@ -688,15 +1182,11 @@ func (q *UserProfileQuery) And() *UserProfileQuery   { return q.w(" AND ") }
 func (q *UserProfileQuery) Or() *UserProfileQuery    { return q.w(" OR ") }
 func (q *UserProfileQuery) Not() *UserProfileQuery   { return q.w(" NOT ") }
 
-func (q *UserProfileQuery) Id_Equal(v int64) *UserProfileQuery {
-	return q.w("id='" + fmt.Sprint(v) + "'")
-}
+func (q *UserProfileQuery) Id_Equal(v int64) *UserProfileQuery { return q.w("id='" + fmt.Sprint(v) + "'") }
 func (q *UserProfileQuery) Id_NotEqual(v int64) *UserProfileQuery {
 	return q.w("id<>'" + fmt.Sprint(v) + "'")
 }
-func (q *UserProfileQuery) Id_Less(v int64) *UserProfileQuery {
-	return q.w("id<'" + fmt.Sprint(v) + "'")
-}
+func (q *UserProfileQuery) Id_Less(v int64) *UserProfileQuery { return q.w("id<'" + fmt.Sprint(v) + "'") }
 func (q *UserProfileQuery) Id_LessEqual(v int64) *UserProfileQuery {
 	return q.w("id<='" + fmt.Sprint(v) + "'")
 }
@@ -1009,17 +1499,9 @@ func (dao *UserProfileDao) GetQuery() *UserProfileQuery {
 	return NewUserProfileQuery(dao)
 }
 
-func (dao *UserProfileDao) UpdateUserName(ctx context.Context, tx *wrap.Tx, userName string, where string) (err error) {
-	_, err = dao.db.Exec(ctx, "UPDATE user_profile SET user_name=? WHERE ?", userName, where)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 type DB struct {
 	wrap.DB
+	Operation   *OperationDao
 	Todo        *TodoDao
 	UserProfile *UserProfileDao
 }
@@ -1039,6 +1521,11 @@ func NewDB() (d *DB, err error) {
 	d.DB = *db
 
 	err = d.Ping(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	d.Operation, err = NewOperationDao(d)
 	if err != nil {
 		return nil, err
 	}

@@ -16,6 +16,30 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `operation`
+--
+
+DROP TABLE IF EXISTS `operation`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `operation` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `operation_type` varchar(32) NOT NULL,
+  `user_agent` varchar(256) NOT NULL,
+  `user_id` varchar(128) NOT NULL,
+  `api_name` varchar(128) NOT NULL,
+  `friend_id` varchar(128) NOT NULL,
+  `todo_id` varchar(128) NOT NULL,
+  `todo_item` varchar(1024) NOT NULL,
+  `user_profile` varchar(1024) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_create_time` (`create_time`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `todo`
 --
 
@@ -29,8 +53,8 @@ CREATE TABLE `todo` (
   `update_version` bigint(20) NOT NULL,
   `todo_id` varchar(128) NOT NULL,
   `user_id` varchar(128) NOT NULL,
-  `todo_category` varchar(32) NOT NULL,
-  `todo_title` varchar(32) NOT NULL,
+  `todo_category` varchar(128) NOT NULL,
+  `todo_title` varchar(128) NOT NULL,
   `todo_desc` varchar(1024) NOT NULL,
   `todo_status` varchar(32) NOT NULL,
   `todo_priority` int(10) NOT NULL,
@@ -38,7 +62,7 @@ CREATE TABLE `todo` (
   UNIQUE KEY `idx_todo_id` (`todo_id`),
   KEY `idx_update_time` (`update_time`),
   KEY `idx_user_id_category` (`user_id`,`todo_category`)
-) ENGINE=InnoDB AUTO_INCREMENT=99 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=264 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -60,7 +84,7 @@ CREATE TABLE `user_profile` (
   UNIQUE KEY `idx_user_id` (`user_id`),
   KEY `idx_update_time` (`update_time`),
   KEY `idx_name` (`user_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -72,4 +96,4 @@ CREATE TABLE `user_profile` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-02-26  9:10:07
+-- Dump completed on 2018-03-30 13:20:02
