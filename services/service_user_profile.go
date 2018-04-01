@@ -1,11 +1,13 @@
 package services
 
 import (
+	"fmt"
 	"github.com/NeuronEvolution/todo/models"
 	"github.com/NeuronEvolution/todo/storages/todo_db"
 	"github.com/NeuronFramework/errors"
 	"github.com/NeuronFramework/rand"
 	"github.com/NeuronFramework/restful"
+	"unicode/utf8"
 )
 
 func (s *TodoService) GetUserProfile(ctx *restful.Context, userID string) (userProfile *models.UserProfile, err error) {
@@ -35,6 +37,14 @@ func (s *TodoService) GetUserProfile(ctx *restful.Context, userID string) (userP
 }
 
 func (s *TodoService) UpdateUserProfile(ctx *restful.Context, userID string, userProfile *models.UserProfile) (err error) {
+	if userProfile == nil {
+		return errors.InvalidParam("userProfile不能为空")
+	}
+
+	if utf8.RuneCountInString(userProfile.UserName) > models.MAX_USER_NAME_LENGTH {
+		return errors.InvalidParam(fmt.Sprintf("名字不能超过%d个字符", models.MAX_TITLE_NAME_LENGTH))
+	}
+
 	dbUserProfile, err := s.todoDB.UserProfile.GetQuery().UserId_Equal(userID).QueryOne(ctx, nil)
 	if err != nil {
 		return err
@@ -81,6 +91,14 @@ func (s *TodoService) UpdateUserProfileTodoVisibility(ctx *restful.Context, user
 		return err
 	}
 
+	s.addOperation(ctx, &models.Operation{
+		OperationType: models.OperationUpdateUserProfileTodoVisibility,
+		UserID:        userID,
+		UserProfile: &models.UserProfile{
+			TodoVisibility: visibility,
+		},
+	})
+
 	return nil
 }
 
@@ -99,6 +117,14 @@ func (s *TodoService) UpdateUserProfileUserName(ctx *restful.Context, userID str
 	if err != nil {
 		return err
 	}
+
+	s.addOperation(ctx, &models.Operation{
+		OperationType: models.OperationUpdateUserProfileUserName,
+		UserID:        userID,
+		UserProfile: &models.UserProfile{
+			UserName: userName,
+		},
+	})
 
 	return nil
 }

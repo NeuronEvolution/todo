@@ -18,10 +18,14 @@ func toOperation(p *models.Operation) (r *todo_db.Operation) {
 	r.ApiName = p.ApiName
 	r.FriendId = p.FriendID
 	r.TodoId = p.TodoId
-	todoItemJson, _ := json.Marshal(p.TodoItem)
-	r.TodoItem = string(todoItemJson)
-	userProfileJson, _ := json.Marshal(p.UserProfile)
-	r.UserProfile = string(userProfileJson)
+	if p.TodoItem != nil {
+		todoItemJson, _ := json.Marshal(p.TodoItem)
+		r.TodoItem = string(todoItemJson)
+	}
+	if p.UserProfile != nil {
+		userProfileJson, _ := json.Marshal(p.UserProfile)
+		r.UserProfile = string(userProfileJson)
+	}
 
 	return r
 }

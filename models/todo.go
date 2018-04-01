@@ -1,5 +1,11 @@
 package models
 
+import (
+	"fmt"
+	"github.com/NeuronFramework/errors"
+	"unicode/utf8"
+)
+
 type TodoStatus string
 
 const (
@@ -16,6 +22,26 @@ type TodoItem struct {
 	Desc     string
 	Status   TodoStatus
 	Priority int32
+}
+
+func (t *TodoItem) ValidateParams() (err error) {
+	if t.Category == "" {
+		return errors.InvalidParam("分类不能为空")
+	}
+
+	if utf8.RuneCountInString(t.Category) > MAX_CATEGORY_NAME_LENGTH {
+		return errors.InvalidParam(fmt.Sprintf("分类名称最多%d个字符", MAX_CATEGORY_NAME_LENGTH))
+	}
+
+	if t.Title == "" {
+		return errors.InvalidParam("标题不能为空")
+	}
+
+	if utf8.RuneCountInString(t.Title) > MAX_TITLE_NAME_LENGTH {
+		return errors.InvalidParam(fmt.Sprintf("标题最多%d个字符", MAX_TITLE_NAME_LENGTH))
+	}
+
+	return nil
 }
 
 type TodoItemGroup struct {

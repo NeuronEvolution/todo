@@ -49,12 +49,13 @@ func (s *TodoService) GetTodo(ctx *restful.Context, userId string, todoId string
 }
 
 func (s *TodoService) AddTodo(ctx *restful.Context, userId string, todoItem *models.TodoItem) (todoId string, err error) {
-	if todoItem.Category == "" {
-		return "", errors.InvalidParam("分类不能为空")
+	if todoItem == nil {
+		return "", errors.InvalidParam("todoItem不能为空")
 	}
 
-	if todoItem.Title == "" {
-		return "", errors.InvalidParam("标题不能为空")
+	err = todoItem.ValidateParams()
+	if err != nil {
+		return "", err
 	}
 
 	dbTodo := todo_db.ToTodo(todoItem)
@@ -74,13 +75,14 @@ func (s *TodoService) AddTodo(ctx *restful.Context, userId string, todoItem *mod
 	return dbTodo.TodoId, nil
 }
 
-func (s *TodoService) UpdateTodo(ctx *restful.Context, userId string, todoID string, todoItem *models.TodoItem) error {
-	if todoItem.Category == "" {
-		return errors.InvalidParam("分类不能为空")
+func (s *TodoService) UpdateTodo(ctx *restful.Context, userId string, todoID string, todoItem *models.TodoItem) (err error) {
+	if todoItem == nil {
+		return errors.InvalidParam("todoItem不能为空")
 	}
 
-	if todoItem.Title == "" {
-		return errors.InvalidParam("标题不能为空")
+	err = todoItem.ValidateParams()
+	if err != nil {
+		return err
 	}
 
 	dbTodo, err := s.todoDB.Todo.GetQuery().
