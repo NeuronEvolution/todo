@@ -75,9 +75,6 @@ func configureAPI(api *operations.TodoPrivateAPI) http.Handler {
 	api.UpdateTodoHandler = operations.UpdateTodoHandlerFunc(func(params operations.UpdateTodoParams, principal interface{}) middleware.Responder {
 		return middleware.NotImplemented("operation .UpdateTodo has not yet been implemented")
 	})
-	api.UpdateUserProfileHandler = operations.UpdateUserProfileHandlerFunc(func(params operations.UpdateUserProfileParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation .UpdateUserProfile has not yet been implemented")
-	})
 	api.UpdateUserProfileTodoVisibilityHandler = operations.UpdateUserProfileTodoVisibilityHandlerFunc(func(params operations.UpdateUserProfileTodoVisibilityParams, principal interface{}) middleware.Responder {
 		return middleware.NotImplemented("operation .UpdateUserProfileTodoVisibility has not yet been implemented")
 	})

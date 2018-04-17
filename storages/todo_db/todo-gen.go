@@ -59,6 +59,45 @@ func (q *BaseQuery) buildQueryString() string {
 	return buf.String()
 }
 
+func (q *BaseQuery) groupBy(fields ...string) {
+	q.groupByFields = make([]string, len(fields))
+	for i, v := range fields {
+		q.groupByFields[i] = v
+	}
+}
+
+func (q *BaseQuery) setLimit(startIncluded int64, count int64) {
+	q.limit = fmt.Sprintf(" limit %d,%d", startIncluded, count)
+}
+
+func (q *BaseQuery) orderBy(fieldName string, asc bool) {
+	if q.order != "" {
+		q.order += ","
+	}
+	q.order += fieldName + " "
+	if asc {
+		q.order += "asc"
+	} else {
+		q.order += "desc"
+	}
+}
+
+func (q *BaseQuery) orderByGroupCount(asc bool) {
+	if q.order != "" {
+		q.order += ","
+	}
+	q.order += "count(1) "
+	if asc {
+		q.order += "asc"
+	} else {
+		q.order += "desc"
+	}
+}
+
+func (q *BaseQuery) setWhere(format string, a ...interface{}) {
+	q.where += fmt.Sprintf(format, a...)
+}
+
 const OPERATION_TABLE_NAME = "operation"
 
 type OPERATION_FIELD string
@@ -76,23 +115,10 @@ const OPERATION_FIELD_USER_PROFILE = OPERATION_FIELD("user_profile")
 
 const OPERATION_ALL_FIELDS_STRING = "id,create_time,operation_type,user_agent,user_id,api_name,friend_id,todo_id,todo_item,user_profile"
 
-var OPERATION_ALL_FIELDS = []string{
-	"id",
-	"create_time",
-	"operation_type",
-	"user_agent",
-	"user_id",
-	"api_name",
-	"friend_id",
-	"todo_id",
-	"todo_item",
-	"user_profile",
-}
-
 type Operation struct {
 	Id            uint64 //size=20
 	CreateTime    time.Time
-	OperationType string //size=32
+	OperationType string //size=128
 	UserAgent     string //size=256
 	UserId        string //size=128
 	ApiName       string //size=128
@@ -149,40 +175,22 @@ func (q *OperationQuery) GroupBy(fields ...OPERATION_FIELD) *OperationQuery {
 }
 
 func (q *OperationQuery) Limit(startIncluded int64, count int64) *OperationQuery {
-	q.limit = fmt.Sprintf(" limit %d,%d", startIncluded, count)
+	q.setLimit(startIncluded, count)
 	return q
 }
 
 func (q *OperationQuery) OrderBy(fieldName OPERATION_FIELD, asc bool) *OperationQuery {
-	if q.order != "" {
-		q.order += ","
-	}
-	q.order += string(fieldName) + " "
-	if asc {
-		q.order += "asc"
-	} else {
-		q.order += "desc"
-	}
-
+	q.orderBy(string(fieldName), asc)
 	return q
 }
 
 func (q *OperationQuery) OrderByGroupCount(asc bool) *OperationQuery {
-	if q.order != "" {
-		q.order += ","
-	}
-	q.order += "count(1) "
-	if asc {
-		q.order += "asc"
-	} else {
-		q.order += "desc"
-	}
-
+	q.orderByGroupCount(asc)
 	return q
 }
 
 func (q *OperationQuery) w(format string, a ...interface{}) *OperationQuery {
-	q.where += fmt.Sprintf(format, a...)
+	q.setWhere(format, a...)
 	return q
 }
 
@@ -228,35 +236,11 @@ func (q *OperationQuery) OperationType_Equal(v string) *OperationQuery {
 func (q *OperationQuery) OperationType_NotEqual(v string) *OperationQuery {
 	return q.w("operation_type<>'" + fmt.Sprint(v) + "'")
 }
-func (q *OperationQuery) OperationType_Less(v string) *OperationQuery {
-	return q.w("operation_type<'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) OperationType_LessEqual(v string) *OperationQuery {
-	return q.w("operation_type<='" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) OperationType_Greater(v string) *OperationQuery {
-	return q.w("operation_type>'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) OperationType_GreaterEqual(v string) *OperationQuery {
-	return q.w("operation_type>='" + fmt.Sprint(v) + "'")
-}
 func (q *OperationQuery) UserAgent_Equal(v string) *OperationQuery {
 	return q.w("user_agent='" + fmt.Sprint(v) + "'")
 }
 func (q *OperationQuery) UserAgent_NotEqual(v string) *OperationQuery {
 	return q.w("user_agent<>'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) UserAgent_Less(v string) *OperationQuery {
-	return q.w("user_agent<'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) UserAgent_LessEqual(v string) *OperationQuery {
-	return q.w("user_agent<='" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) UserAgent_Greater(v string) *OperationQuery {
-	return q.w("user_agent>'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) UserAgent_GreaterEqual(v string) *OperationQuery {
-	return q.w("user_agent>='" + fmt.Sprint(v) + "'")
 }
 func (q *OperationQuery) UserId_Equal(v string) *OperationQuery {
 	return q.w("user_id='" + fmt.Sprint(v) + "'")
@@ -264,35 +248,11 @@ func (q *OperationQuery) UserId_Equal(v string) *OperationQuery {
 func (q *OperationQuery) UserId_NotEqual(v string) *OperationQuery {
 	return q.w("user_id<>'" + fmt.Sprint(v) + "'")
 }
-func (q *OperationQuery) UserId_Less(v string) *OperationQuery {
-	return q.w("user_id<'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) UserId_LessEqual(v string) *OperationQuery {
-	return q.w("user_id<='" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) UserId_Greater(v string) *OperationQuery {
-	return q.w("user_id>'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) UserId_GreaterEqual(v string) *OperationQuery {
-	return q.w("user_id>='" + fmt.Sprint(v) + "'")
-}
 func (q *OperationQuery) ApiName_Equal(v string) *OperationQuery {
 	return q.w("api_name='" + fmt.Sprint(v) + "'")
 }
 func (q *OperationQuery) ApiName_NotEqual(v string) *OperationQuery {
 	return q.w("api_name<>'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) ApiName_Less(v string) *OperationQuery {
-	return q.w("api_name<'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) ApiName_LessEqual(v string) *OperationQuery {
-	return q.w("api_name<='" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) ApiName_Greater(v string) *OperationQuery {
-	return q.w("api_name>'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) ApiName_GreaterEqual(v string) *OperationQuery {
-	return q.w("api_name>='" + fmt.Sprint(v) + "'")
 }
 func (q *OperationQuery) FriendId_Equal(v string) *OperationQuery {
 	return q.w("friend_id='" + fmt.Sprint(v) + "'")
@@ -300,35 +260,11 @@ func (q *OperationQuery) FriendId_Equal(v string) *OperationQuery {
 func (q *OperationQuery) FriendId_NotEqual(v string) *OperationQuery {
 	return q.w("friend_id<>'" + fmt.Sprint(v) + "'")
 }
-func (q *OperationQuery) FriendId_Less(v string) *OperationQuery {
-	return q.w("friend_id<'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) FriendId_LessEqual(v string) *OperationQuery {
-	return q.w("friend_id<='" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) FriendId_Greater(v string) *OperationQuery {
-	return q.w("friend_id>'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) FriendId_GreaterEqual(v string) *OperationQuery {
-	return q.w("friend_id>='" + fmt.Sprint(v) + "'")
-}
 func (q *OperationQuery) TodoId_Equal(v string) *OperationQuery {
 	return q.w("todo_id='" + fmt.Sprint(v) + "'")
 }
 func (q *OperationQuery) TodoId_NotEqual(v string) *OperationQuery {
 	return q.w("todo_id<>'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) TodoId_Less(v string) *OperationQuery {
-	return q.w("todo_id<'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) TodoId_LessEqual(v string) *OperationQuery {
-	return q.w("todo_id<='" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) TodoId_Greater(v string) *OperationQuery {
-	return q.w("todo_id>'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) TodoId_GreaterEqual(v string) *OperationQuery {
-	return q.w("todo_id>='" + fmt.Sprint(v) + "'")
 }
 func (q *OperationQuery) TodoItem_Equal(v string) *OperationQuery {
 	return q.w("todo_item='" + fmt.Sprint(v) + "'")
@@ -336,42 +272,17 @@ func (q *OperationQuery) TodoItem_Equal(v string) *OperationQuery {
 func (q *OperationQuery) TodoItem_NotEqual(v string) *OperationQuery {
 	return q.w("todo_item<>'" + fmt.Sprint(v) + "'")
 }
-func (q *OperationQuery) TodoItem_Less(v string) *OperationQuery {
-	return q.w("todo_item<'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) TodoItem_LessEqual(v string) *OperationQuery {
-	return q.w("todo_item<='" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) TodoItem_Greater(v string) *OperationQuery {
-	return q.w("todo_item>'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) TodoItem_GreaterEqual(v string) *OperationQuery {
-	return q.w("todo_item>='" + fmt.Sprint(v) + "'")
-}
 func (q *OperationQuery) UserProfile_Equal(v string) *OperationQuery {
 	return q.w("user_profile='" + fmt.Sprint(v) + "'")
 }
 func (q *OperationQuery) UserProfile_NotEqual(v string) *OperationQuery {
 	return q.w("user_profile<>'" + fmt.Sprint(v) + "'")
 }
-func (q *OperationQuery) UserProfile_Less(v string) *OperationQuery {
-	return q.w("user_profile<'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) UserProfile_LessEqual(v string) *OperationQuery {
-	return q.w("user_profile<='" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) UserProfile_Greater(v string) *OperationQuery {
-	return q.w("user_profile>'" + fmt.Sprint(v) + "'")
-}
-func (q *OperationQuery) UserProfile_GreaterEqual(v string) *OperationQuery {
-	return q.w("user_profile>='" + fmt.Sprint(v) + "'")
-}
 
 type OperationDao struct {
 	logger     *zap.Logger
 	db         *DB
 	insertStmt *wrap.Stmt
-	updateStmt *wrap.Stmt
 	deleteStmt *wrap.Stmt
 }
 
@@ -393,11 +304,6 @@ func (dao *OperationDao) init() (err error) {
 		return err
 	}
 
-	err = dao.prepareUpdateStmt()
-	if err != nil {
-		return err
-	}
-
 	err = dao.prepareDeleteStmt()
 	if err != nil {
 		return err
@@ -408,11 +314,6 @@ func (dao *OperationDao) init() (err error) {
 
 func (dao *OperationDao) prepareInsertStmt() (err error) {
 	dao.insertStmt, err = dao.db.Prepare(context.Background(), "INSERT INTO operation (operation_type,user_agent,user_id,api_name,friend_id,todo_id,todo_item,user_profile) VALUES (?,?,?,?,?,?,?,?)")
-	return err
-}
-
-func (dao *OperationDao) prepareUpdateStmt() (err error) {
-	dao.updateStmt, err = dao.db.Prepare(context.Background(), "UPDATE operation SET operation_type=?,user_agent=?,user_id=?,api_name=?,friend_id=?,todo_id=?,todo_item=?,user_profile=? WHERE id=?")
 	return err
 }
 
@@ -438,20 +339,6 @@ func (dao *OperationDao) Insert(ctx context.Context, tx *wrap.Tx, e *Operation) 
 	}
 
 	return id, nil
-}
-
-func (dao *OperationDao) Update(ctx context.Context, tx *wrap.Tx, e *Operation) (err error) {
-	stmt := dao.updateStmt
-	if tx != nil {
-		stmt = tx.Stmt(ctx, stmt)
-	}
-
-	_, err = stmt.Exec(ctx, e.OperationType, e.UserAgent, e.UserId, e.ApiName, e.FriendId, e.TodoId, e.TodoItem, e.UserProfile, e.Id)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (dao *OperationDao) Delete(ctx context.Context, tx *wrap.Tx, id uint64) (err error) {
@@ -579,22 +466,8 @@ const TODO_FIELD_TODO_PRIORITY = TODO_FIELD("todo_priority")
 
 const TODO_ALL_FIELDS_STRING = "id,create_time,update_time,update_version,todo_id,user_id,todo_category,todo_title,todo_desc,todo_status,todo_priority"
 
-var TODO_ALL_FIELDS = []string{
-	"id",
-	"create_time",
-	"update_time",
-	"update_version",
-	"todo_id",
-	"user_id",
-	"todo_category",
-	"todo_title",
-	"todo_desc",
-	"todo_status",
-	"todo_priority",
-}
-
 type Todo struct {
-	Id            int64 //size=20
+	Id            uint64 //size=20
 	CreateTime    time.Time
 	UpdateTime    time.Time
 	UpdateVersion int64  //size=20
@@ -654,40 +527,22 @@ func (q *TodoQuery) GroupBy(fields ...TODO_FIELD) *TodoQuery {
 }
 
 func (q *TodoQuery) Limit(startIncluded int64, count int64) *TodoQuery {
-	q.limit = fmt.Sprintf(" limit %d,%d", startIncluded, count)
+	q.setLimit(startIncluded, count)
 	return q
 }
 
 func (q *TodoQuery) OrderBy(fieldName TODO_FIELD, asc bool) *TodoQuery {
-	if q.order != "" {
-		q.order += ","
-	}
-	q.order += string(fieldName) + " "
-	if asc {
-		q.order += "asc"
-	} else {
-		q.order += "desc"
-	}
-
+	q.orderBy(string(fieldName), asc)
 	return q
 }
 
 func (q *TodoQuery) OrderByGroupCount(asc bool) *TodoQuery {
-	if q.order != "" {
-		q.order += ","
-	}
-	q.order += "count(1) "
-	if asc {
-		q.order += "asc"
-	} else {
-		q.order += "desc"
-	}
-
+	q.orderByGroupCount(asc)
 	return q
 }
 
 func (q *TodoQuery) w(format string, a ...interface{}) *TodoQuery {
-	q.where += fmt.Sprintf(format, a...)
+	q.setWhere(format, a...)
 	return q
 }
 
@@ -697,12 +552,12 @@ func (q *TodoQuery) And() *TodoQuery   { return q.w(" AND ") }
 func (q *TodoQuery) Or() *TodoQuery    { return q.w(" OR ") }
 func (q *TodoQuery) Not() *TodoQuery   { return q.w(" NOT ") }
 
-func (q *TodoQuery) Id_Equal(v int64) *TodoQuery        { return q.w("id='" + fmt.Sprint(v) + "'") }
-func (q *TodoQuery) Id_NotEqual(v int64) *TodoQuery     { return q.w("id<>'" + fmt.Sprint(v) + "'") }
-func (q *TodoQuery) Id_Less(v int64) *TodoQuery         { return q.w("id<'" + fmt.Sprint(v) + "'") }
-func (q *TodoQuery) Id_LessEqual(v int64) *TodoQuery    { return q.w("id<='" + fmt.Sprint(v) + "'") }
-func (q *TodoQuery) Id_Greater(v int64) *TodoQuery      { return q.w("id>'" + fmt.Sprint(v) + "'") }
-func (q *TodoQuery) Id_GreaterEqual(v int64) *TodoQuery { return q.w("id>='" + fmt.Sprint(v) + "'") }
+func (q *TodoQuery) Id_Equal(v uint64) *TodoQuery        { return q.w("id='" + fmt.Sprint(v) + "'") }
+func (q *TodoQuery) Id_NotEqual(v uint64) *TodoQuery     { return q.w("id<>'" + fmt.Sprint(v) + "'") }
+func (q *TodoQuery) Id_Less(v uint64) *TodoQuery         { return q.w("id<'" + fmt.Sprint(v) + "'") }
+func (q *TodoQuery) Id_LessEqual(v uint64) *TodoQuery    { return q.w("id<='" + fmt.Sprint(v) + "'") }
+func (q *TodoQuery) Id_Greater(v uint64) *TodoQuery      { return q.w("id>'" + fmt.Sprint(v) + "'") }
+func (q *TodoQuery) Id_GreaterEqual(v uint64) *TodoQuery { return q.w("id>='" + fmt.Sprint(v) + "'") }
 func (q *TodoQuery) CreateTime_Equal(v time.Time) *TodoQuery {
 	return q.w("create_time='" + fmt.Sprint(v) + "'")
 }
@@ -759,41 +614,13 @@ func (q *TodoQuery) UpdateVersion_GreaterEqual(v int64) *TodoQuery {
 }
 func (q *TodoQuery) TodoId_Equal(v string) *TodoQuery    { return q.w("todo_id='" + fmt.Sprint(v) + "'") }
 func (q *TodoQuery) TodoId_NotEqual(v string) *TodoQuery { return q.w("todo_id<>'" + fmt.Sprint(v) + "'") }
-func (q *TodoQuery) TodoId_Less(v string) *TodoQuery     { return q.w("todo_id<'" + fmt.Sprint(v) + "'") }
-func (q *TodoQuery) TodoId_LessEqual(v string) *TodoQuery {
-	return q.w("todo_id<='" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoId_Greater(v string) *TodoQuery { return q.w("todo_id>'" + fmt.Sprint(v) + "'") }
-func (q *TodoQuery) TodoId_GreaterEqual(v string) *TodoQuery {
-	return q.w("todo_id>='" + fmt.Sprint(v) + "'")
-}
 func (q *TodoQuery) UserId_Equal(v string) *TodoQuery    { return q.w("user_id='" + fmt.Sprint(v) + "'") }
 func (q *TodoQuery) UserId_NotEqual(v string) *TodoQuery { return q.w("user_id<>'" + fmt.Sprint(v) + "'") }
-func (q *TodoQuery) UserId_Less(v string) *TodoQuery     { return q.w("user_id<'" + fmt.Sprint(v) + "'") }
-func (q *TodoQuery) UserId_LessEqual(v string) *TodoQuery {
-	return q.w("user_id<='" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) UserId_Greater(v string) *TodoQuery { return q.w("user_id>'" + fmt.Sprint(v) + "'") }
-func (q *TodoQuery) UserId_GreaterEqual(v string) *TodoQuery {
-	return q.w("user_id>='" + fmt.Sprint(v) + "'")
-}
 func (q *TodoQuery) TodoCategory_Equal(v string) *TodoQuery {
 	return q.w("todo_category='" + fmt.Sprint(v) + "'")
 }
 func (q *TodoQuery) TodoCategory_NotEqual(v string) *TodoQuery {
 	return q.w("todo_category<>'" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoCategory_Less(v string) *TodoQuery {
-	return q.w("todo_category<'" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoCategory_LessEqual(v string) *TodoQuery {
-	return q.w("todo_category<='" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoCategory_Greater(v string) *TodoQuery {
-	return q.w("todo_category>'" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoCategory_GreaterEqual(v string) *TodoQuery {
-	return q.w("todo_category>='" + fmt.Sprint(v) + "'")
 }
 func (q *TodoQuery) TodoTitle_Equal(v string) *TodoQuery {
 	return q.w("todo_title='" + fmt.Sprint(v) + "'")
@@ -801,49 +628,15 @@ func (q *TodoQuery) TodoTitle_Equal(v string) *TodoQuery {
 func (q *TodoQuery) TodoTitle_NotEqual(v string) *TodoQuery {
 	return q.w("todo_title<>'" + fmt.Sprint(v) + "'")
 }
-func (q *TodoQuery) TodoTitle_Less(v string) *TodoQuery {
-	return q.w("todo_title<'" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoTitle_LessEqual(v string) *TodoQuery {
-	return q.w("todo_title<='" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoTitle_Greater(v string) *TodoQuery {
-	return q.w("todo_title>'" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoTitle_GreaterEqual(v string) *TodoQuery {
-	return q.w("todo_title>='" + fmt.Sprint(v) + "'")
-}
 func (q *TodoQuery) TodoDesc_Equal(v string) *TodoQuery { return q.w("todo_desc='" + fmt.Sprint(v) + "'") }
 func (q *TodoQuery) TodoDesc_NotEqual(v string) *TodoQuery {
 	return q.w("todo_desc<>'" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoDesc_Less(v string) *TodoQuery { return q.w("todo_desc<'" + fmt.Sprint(v) + "'") }
-func (q *TodoQuery) TodoDesc_LessEqual(v string) *TodoQuery {
-	return q.w("todo_desc<='" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoDesc_Greater(v string) *TodoQuery {
-	return q.w("todo_desc>'" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoDesc_GreaterEqual(v string) *TodoQuery {
-	return q.w("todo_desc>='" + fmt.Sprint(v) + "'")
 }
 func (q *TodoQuery) TodoStatus_Equal(v string) *TodoQuery {
 	return q.w("todo_status='" + fmt.Sprint(v) + "'")
 }
 func (q *TodoQuery) TodoStatus_NotEqual(v string) *TodoQuery {
 	return q.w("todo_status<>'" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoStatus_Less(v string) *TodoQuery {
-	return q.w("todo_status<'" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoStatus_LessEqual(v string) *TodoQuery {
-	return q.w("todo_status<='" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoStatus_Greater(v string) *TodoQuery {
-	return q.w("todo_status>'" + fmt.Sprint(v) + "'")
-}
-func (q *TodoQuery) TodoStatus_GreaterEqual(v string) *TodoQuery {
-	return q.w("todo_status>='" + fmt.Sprint(v) + "'")
 }
 func (q *TodoQuery) TodoPriority_Equal(v int32) *TodoQuery {
 	return q.w("todo_priority='" + fmt.Sprint(v) + "'")
@@ -864,11 +657,88 @@ func (q *TodoQuery) TodoPriority_GreaterEqual(v int32) *TodoQuery {
 	return q.w("todo_priority>='" + fmt.Sprint(v) + "'")
 }
 
+type TodoUpdate struct {
+	dao    *TodoDao
+	keys   []string
+	values []interface{}
+}
+
+func NewTodoUpdate(dao *TodoDao) *TodoUpdate {
+	q := &TodoUpdate{}
+	q.dao = dao
+	q.keys = make([]string, 0)
+	q.values = make([]interface{}, 0)
+
+	return q
+}
+
+func (u *TodoUpdate) Update(ctx context.Context, tx *wrap.Tx, id uint64) (err error) {
+	if len(u.keys) == 0 {
+		err = fmt.Errorf("TodoUpdate没有设置更新字段")
+		u.dao.logger.Error("TodoUpdate", zap.Error(err))
+		return err
+	}
+	s := "UPDATE todo SET " + strings.Join(u.keys, ",") + " WHERE id=?"
+	v := append(u.values, id)
+	if tx == nil {
+		_, err = u.dao.db.Exec(ctx, s, v)
+	} else {
+		_, err = tx.Exec(ctx, s, v)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *TodoUpdate) TodoId(v string) *TodoUpdate {
+	u.keys = append(u.keys, "todo_id=?")
+	u.values = append(u.values, v)
+	return u
+}
+
+func (u *TodoUpdate) UserId(v string) *TodoUpdate {
+	u.keys = append(u.keys, "user_id=?")
+	u.values = append(u.values, v)
+	return u
+}
+
+func (u *TodoUpdate) TodoCategory(v string) *TodoUpdate {
+	u.keys = append(u.keys, "todo_category=?")
+	u.values = append(u.values, v)
+	return u
+}
+
+func (u *TodoUpdate) TodoTitle(v string) *TodoUpdate {
+	u.keys = append(u.keys, "todo_title=?")
+	u.values = append(u.values, v)
+	return u
+}
+
+func (u *TodoUpdate) TodoDesc(v string) *TodoUpdate {
+	u.keys = append(u.keys, "todo_desc=?")
+	u.values = append(u.values, v)
+	return u
+}
+
+func (u *TodoUpdate) TodoStatus(v string) *TodoUpdate {
+	u.keys = append(u.keys, "todo_status=?")
+	u.values = append(u.values, v)
+	return u
+}
+
+func (u *TodoUpdate) TodoPriority(v int32) *TodoUpdate {
+	u.keys = append(u.keys, "todo_priority=?")
+	u.values = append(u.values, v)
+	return u
+}
+
 type TodoDao struct {
 	logger     *zap.Logger
 	db         *DB
 	insertStmt *wrap.Stmt
-	updateStmt *wrap.Stmt
 	deleteStmt *wrap.Stmt
 }
 
@@ -890,11 +760,6 @@ func (dao *TodoDao) init() (err error) {
 		return err
 	}
 
-	err = dao.prepareUpdateStmt()
-	if err != nil {
-		return err
-	}
-
 	err = dao.prepareDeleteStmt()
 	if err != nil {
 		return err
@@ -905,11 +770,6 @@ func (dao *TodoDao) init() (err error) {
 
 func (dao *TodoDao) prepareInsertStmt() (err error) {
 	dao.insertStmt, err = dao.db.Prepare(context.Background(), "INSERT INTO todo (update_version,todo_id,user_id,todo_category,todo_title,todo_desc,todo_status,todo_priority) VALUES (?,?,?,?,?,?,?,?)")
-	return err
-}
-
-func (dao *TodoDao) prepareUpdateStmt() (err error) {
-	dao.updateStmt, err = dao.db.Prepare(context.Background(), "UPDATE todo SET update_version=update_version+1,todo_id=?,user_id=?,todo_category=?,todo_title=?,todo_desc=?,todo_status=?,todo_priority=? WHERE id=? AND update_version=?")
 	return err
 }
 
@@ -937,21 +797,7 @@ func (dao *TodoDao) Insert(ctx context.Context, tx *wrap.Tx, e *Todo) (id int64,
 	return id, nil
 }
 
-func (dao *TodoDao) Update(ctx context.Context, tx *wrap.Tx, e *Todo) (err error) {
-	stmt := dao.updateStmt
-	if tx != nil {
-		stmt = tx.Stmt(ctx, stmt)
-	}
-
-	_, err = stmt.Exec(ctx, e.TodoId, e.UserId, e.TodoCategory, e.TodoTitle, e.TodoDesc, e.TodoStatus, e.TodoPriority, e.Id, e.UpdateVersion)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (dao *TodoDao) Delete(ctx context.Context, tx *wrap.Tx, id int64) (err error) {
+func (dao *TodoDao) Delete(ctx context.Context, tx *wrap.Tx, id uint64) (err error) {
 	stmt := dao.deleteStmt
 	if tx != nil {
 		stmt = tx.Stmt(ctx, stmt)
@@ -1058,6 +904,10 @@ func (dao *TodoDao) GetQuery() *TodoQuery {
 	return NewTodoQuery(dao)
 }
 
+func (dao *TodoDao) GetUpdate() *TodoUpdate {
+	return NewTodoUpdate(dao)
+}
+
 const USER_PROFILE_TABLE_NAME = "user_profile"
 
 type USER_PROFILE_FIELD string
@@ -1072,18 +922,8 @@ const USER_PROFILE_FIELD_TODO_VISIBILITY = USER_PROFILE_FIELD("todo_visibility")
 
 const USER_PROFILE_ALL_FIELDS_STRING = "id,create_time,update_time,update_version,user_id,user_name,todo_visibility"
 
-var USER_PROFILE_ALL_FIELDS = []string{
-	"id",
-	"create_time",
-	"update_time",
-	"update_version",
-	"user_id",
-	"user_name",
-	"todo_visibility",
-}
-
 type UserProfile struct {
-	Id             int64 //size=20
+	Id             uint64 //size=20
 	CreateTime     time.Time
 	UpdateTime     time.Time
 	UpdateVersion  int64  //size=20
@@ -1139,40 +979,22 @@ func (q *UserProfileQuery) GroupBy(fields ...USER_PROFILE_FIELD) *UserProfileQue
 }
 
 func (q *UserProfileQuery) Limit(startIncluded int64, count int64) *UserProfileQuery {
-	q.limit = fmt.Sprintf(" limit %d,%d", startIncluded, count)
+	q.setLimit(startIncluded, count)
 	return q
 }
 
 func (q *UserProfileQuery) OrderBy(fieldName USER_PROFILE_FIELD, asc bool) *UserProfileQuery {
-	if q.order != "" {
-		q.order += ","
-	}
-	q.order += string(fieldName) + " "
-	if asc {
-		q.order += "asc"
-	} else {
-		q.order += "desc"
-	}
-
+	q.orderBy(string(fieldName), asc)
 	return q
 }
 
 func (q *UserProfileQuery) OrderByGroupCount(asc bool) *UserProfileQuery {
-	if q.order != "" {
-		q.order += ","
-	}
-	q.order += "count(1) "
-	if asc {
-		q.order += "asc"
-	} else {
-		q.order += "desc"
-	}
-
+	q.orderByGroupCount(asc)
 	return q
 }
 
 func (q *UserProfileQuery) w(format string, a ...interface{}) *UserProfileQuery {
-	q.where += fmt.Sprintf(format, a...)
+	q.setWhere(format, a...)
 	return q
 }
 
@@ -1182,18 +1004,20 @@ func (q *UserProfileQuery) And() *UserProfileQuery   { return q.w(" AND ") }
 func (q *UserProfileQuery) Or() *UserProfileQuery    { return q.w(" OR ") }
 func (q *UserProfileQuery) Not() *UserProfileQuery   { return q.w(" NOT ") }
 
-func (q *UserProfileQuery) Id_Equal(v int64) *UserProfileQuery { return q.w("id='" + fmt.Sprint(v) + "'") }
-func (q *UserProfileQuery) Id_NotEqual(v int64) *UserProfileQuery {
+func (q *UserProfileQuery) Id_Equal(v uint64) *UserProfileQuery {
+	return q.w("id='" + fmt.Sprint(v) + "'")
+}
+func (q *UserProfileQuery) Id_NotEqual(v uint64) *UserProfileQuery {
 	return q.w("id<>'" + fmt.Sprint(v) + "'")
 }
-func (q *UserProfileQuery) Id_Less(v int64) *UserProfileQuery { return q.w("id<'" + fmt.Sprint(v) + "'") }
-func (q *UserProfileQuery) Id_LessEqual(v int64) *UserProfileQuery {
+func (q *UserProfileQuery) Id_Less(v uint64) *UserProfileQuery { return q.w("id<'" + fmt.Sprint(v) + "'") }
+func (q *UserProfileQuery) Id_LessEqual(v uint64) *UserProfileQuery {
 	return q.w("id<='" + fmt.Sprint(v) + "'")
 }
-func (q *UserProfileQuery) Id_Greater(v int64) *UserProfileQuery {
+func (q *UserProfileQuery) Id_Greater(v uint64) *UserProfileQuery {
 	return q.w("id>'" + fmt.Sprint(v) + "'")
 }
-func (q *UserProfileQuery) Id_GreaterEqual(v int64) *UserProfileQuery {
+func (q *UserProfileQuery) Id_GreaterEqual(v uint64) *UserProfileQuery {
 	return q.w("id>='" + fmt.Sprint(v) + "'")
 }
 func (q *UserProfileQuery) CreateTime_Equal(v time.Time) *UserProfileQuery {
@@ -1256,35 +1080,11 @@ func (q *UserProfileQuery) UserId_Equal(v string) *UserProfileQuery {
 func (q *UserProfileQuery) UserId_NotEqual(v string) *UserProfileQuery {
 	return q.w("user_id<>'" + fmt.Sprint(v) + "'")
 }
-func (q *UserProfileQuery) UserId_Less(v string) *UserProfileQuery {
-	return q.w("user_id<'" + fmt.Sprint(v) + "'")
-}
-func (q *UserProfileQuery) UserId_LessEqual(v string) *UserProfileQuery {
-	return q.w("user_id<='" + fmt.Sprint(v) + "'")
-}
-func (q *UserProfileQuery) UserId_Greater(v string) *UserProfileQuery {
-	return q.w("user_id>'" + fmt.Sprint(v) + "'")
-}
-func (q *UserProfileQuery) UserId_GreaterEqual(v string) *UserProfileQuery {
-	return q.w("user_id>='" + fmt.Sprint(v) + "'")
-}
 func (q *UserProfileQuery) UserName_Equal(v string) *UserProfileQuery {
 	return q.w("user_name='" + fmt.Sprint(v) + "'")
 }
 func (q *UserProfileQuery) UserName_NotEqual(v string) *UserProfileQuery {
 	return q.w("user_name<>'" + fmt.Sprint(v) + "'")
-}
-func (q *UserProfileQuery) UserName_Less(v string) *UserProfileQuery {
-	return q.w("user_name<'" + fmt.Sprint(v) + "'")
-}
-func (q *UserProfileQuery) UserName_LessEqual(v string) *UserProfileQuery {
-	return q.w("user_name<='" + fmt.Sprint(v) + "'")
-}
-func (q *UserProfileQuery) UserName_Greater(v string) *UserProfileQuery {
-	return q.w("user_name>'" + fmt.Sprint(v) + "'")
-}
-func (q *UserProfileQuery) UserName_GreaterEqual(v string) *UserProfileQuery {
-	return q.w("user_name>='" + fmt.Sprint(v) + "'")
 }
 func (q *UserProfileQuery) TodoVisibility_Equal(v string) *UserProfileQuery {
 	return q.w("todo_visibility='" + fmt.Sprint(v) + "'")
@@ -1292,24 +1092,65 @@ func (q *UserProfileQuery) TodoVisibility_Equal(v string) *UserProfileQuery {
 func (q *UserProfileQuery) TodoVisibility_NotEqual(v string) *UserProfileQuery {
 	return q.w("todo_visibility<>'" + fmt.Sprint(v) + "'")
 }
-func (q *UserProfileQuery) TodoVisibility_Less(v string) *UserProfileQuery {
-	return q.w("todo_visibility<'" + fmt.Sprint(v) + "'")
+
+type UserProfileUpdate struct {
+	dao    *UserProfileDao
+	keys   []string
+	values []interface{}
 }
-func (q *UserProfileQuery) TodoVisibility_LessEqual(v string) *UserProfileQuery {
-	return q.w("todo_visibility<='" + fmt.Sprint(v) + "'")
+
+func NewUserProfileUpdate(dao *UserProfileDao) *UserProfileUpdate {
+	q := &UserProfileUpdate{}
+	q.dao = dao
+	q.keys = make([]string, 0)
+	q.values = make([]interface{}, 0)
+
+	return q
 }
-func (q *UserProfileQuery) TodoVisibility_Greater(v string) *UserProfileQuery {
-	return q.w("todo_visibility>'" + fmt.Sprint(v) + "'")
+
+func (u *UserProfileUpdate) Update(ctx context.Context, tx *wrap.Tx, id uint64) (err error) {
+	if len(u.keys) == 0 {
+		err = fmt.Errorf("UserProfileUpdate没有设置更新字段")
+		u.dao.logger.Error("UserProfileUpdate", zap.Error(err))
+		return err
+	}
+	s := "UPDATE user_profile SET " + strings.Join(u.keys, ",") + " WHERE id=?"
+	v := append(u.values, id)
+	if tx == nil {
+		_, err = u.dao.db.Exec(ctx, s, v)
+	} else {
+		_, err = tx.Exec(ctx, s, v)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
-func (q *UserProfileQuery) TodoVisibility_GreaterEqual(v string) *UserProfileQuery {
-	return q.w("todo_visibility>='" + fmt.Sprint(v) + "'")
+
+func (u *UserProfileUpdate) UserId(v string) *UserProfileUpdate {
+	u.keys = append(u.keys, "user_id=?")
+	u.values = append(u.values, v)
+	return u
+}
+
+func (u *UserProfileUpdate) UserName(v string) *UserProfileUpdate {
+	u.keys = append(u.keys, "user_name=?")
+	u.values = append(u.values, v)
+	return u
+}
+
+func (u *UserProfileUpdate) TodoVisibility(v string) *UserProfileUpdate {
+	u.keys = append(u.keys, "todo_visibility=?")
+	u.values = append(u.values, v)
+	return u
 }
 
 type UserProfileDao struct {
 	logger     *zap.Logger
 	db         *DB
 	insertStmt *wrap.Stmt
-	updateStmt *wrap.Stmt
 	deleteStmt *wrap.Stmt
 }
 
@@ -1331,11 +1172,6 @@ func (dao *UserProfileDao) init() (err error) {
 		return err
 	}
 
-	err = dao.prepareUpdateStmt()
-	if err != nil {
-		return err
-	}
-
 	err = dao.prepareDeleteStmt()
 	if err != nil {
 		return err
@@ -1346,11 +1182,6 @@ func (dao *UserProfileDao) init() (err error) {
 
 func (dao *UserProfileDao) prepareInsertStmt() (err error) {
 	dao.insertStmt, err = dao.db.Prepare(context.Background(), "INSERT INTO user_profile (update_version,user_id,user_name,todo_visibility) VALUES (?,?,?,?)")
-	return err
-}
-
-func (dao *UserProfileDao) prepareUpdateStmt() (err error) {
-	dao.updateStmt, err = dao.db.Prepare(context.Background(), "UPDATE user_profile SET update_version=update_version+1,user_id=?,user_name=?,todo_visibility=? WHERE id=? AND update_version=?")
 	return err
 }
 
@@ -1378,21 +1209,7 @@ func (dao *UserProfileDao) Insert(ctx context.Context, tx *wrap.Tx, e *UserProfi
 	return id, nil
 }
 
-func (dao *UserProfileDao) Update(ctx context.Context, tx *wrap.Tx, e *UserProfile) (err error) {
-	stmt := dao.updateStmt
-	if tx != nil {
-		stmt = tx.Stmt(ctx, stmt)
-	}
-
-	_, err = stmt.Exec(ctx, e.UserId, e.UserName, e.TodoVisibility, e.Id, e.UpdateVersion)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (dao *UserProfileDao) Delete(ctx context.Context, tx *wrap.Tx, id int64) (err error) {
+func (dao *UserProfileDao) Delete(ctx context.Context, tx *wrap.Tx, id uint64) (err error) {
 	stmt := dao.deleteStmt
 	if tx != nil {
 		stmt = tx.Stmt(ctx, stmt)
@@ -1497,6 +1314,10 @@ func (dao *UserProfileDao) QueryGroupBy(ctx context.Context, tx *wrap.Tx, groupB
 
 func (dao *UserProfileDao) GetQuery() *UserProfileQuery {
 	return NewUserProfileQuery(dao)
+}
+
+func (dao *UserProfileDao) GetUpdate() *UserProfileUpdate {
+	return NewUserProfileUpdate(dao)
 }
 
 type DB struct {

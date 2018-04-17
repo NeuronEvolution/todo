@@ -1,4 +1,4 @@
--- MySQL dump 10.13  Distrib 5.7.17, for macos10.12 (x86_64)
+-- MySQL dump 10.13  Distrib 5.7.19, for macos10.12 (x86_64)
 --
 -- Host: 127.0.0.1    Database: todo
 -- ------------------------------------------------------
@@ -25,7 +25,7 @@ DROP TABLE IF EXISTS `operation`;
 CREATE TABLE `operation` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `operation_type` varchar(32) NOT NULL,
+  `operation_type` varchar(128) NOT NULL,
   `user_agent` varchar(256) NOT NULL,
   `user_id` varchar(128) NOT NULL,
   `api_name` varchar(128) NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE `operation` (
   PRIMARY KEY (`id`),
   KEY `idx_create_time` (`create_time`),
   KEY `idx_user_id` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=422 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -47,7 +47,7 @@ DROP TABLE IF EXISTS `todo`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `todo` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `update_version` bigint(20) NOT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE `todo` (
   UNIQUE KEY `idx_todo_id` (`todo_id`),
   KEY `idx_update_time` (`update_time`),
   KEY `idx_user_id_category` (`user_id`,`todo_category`)
-) ENGINE=InnoDB AUTO_INCREMENT=264 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=267 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -73,7 +73,7 @@ DROP TABLE IF EXISTS `user_profile`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `user_profile` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `update_version` bigint(20) NOT NULL,
@@ -96,4 +96,4 @@ CREATE TABLE `user_profile` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-03-30 13:20:02
+-- Dump completed on 2018-04-17 13:12:19

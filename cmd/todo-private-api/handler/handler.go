@@ -120,15 +120,6 @@ func (h *TodoHandler) GetUserProfile(p operations.GetUserProfileParams, userId i
 	return operations.NewGetUserProfileOK().WithPayload(fromUserProfile(userProfile))
 }
 
-func (h *TodoHandler) UpdateUserProfile(p operations.UpdateUserProfileParams, userId interface{}) middleware.Responder {
-	err := h.service.UpdateUserProfile(restful.NewContext(p.HTTPRequest), userId.(string), toUserProfile(p.UserProfile))
-	if err != nil {
-		return errors.Wrap(err)
-	}
-
-	return operations.NewUpdateUserProfileOK()
-}
-
 func (h *TodoHandler) UpdateUserProfileTodoVisibility(p operations.UpdateUserProfileTodoVisibilityParams, userID interface{}) middleware.Responder {
 	err := h.service.UpdateUserProfileTodoVisibility(restful.NewContext(p.HTTPRequest), userID.(string), toTodoVisibility(p.Visibility))
 	if err != nil {

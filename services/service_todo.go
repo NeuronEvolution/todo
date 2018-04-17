@@ -96,13 +96,13 @@ func (s *TodoService) UpdateTodo(ctx *restful.Context, userId string, todoID str
 		return errors.NotFound("计划不存在")
 	}
 
-	dbTodo.TodoCategory = todoItem.Category
-	dbTodo.TodoTitle = todoItem.Title
-	dbTodo.TodoDesc = todoItem.Desc
-	dbTodo.TodoStatus = string(todoItem.Status)
-	dbTodo.TodoPriority = todoItem.Priority
-
-	err = s.todoDB.Todo.Update(ctx, nil, dbTodo)
+	err = s.todoDB.Todo.GetUpdate().
+		TodoCategory(todoItem.Category).
+		TodoTitle(todoItem.Title).
+		TodoDesc(todoItem.Desc).
+		TodoStatus(string(todoItem.Status)).
+		TodoPriority(todoItem.Priority).
+		Update(ctx, nil, dbTodo.Id)
 	if err != nil {
 		return err
 	}

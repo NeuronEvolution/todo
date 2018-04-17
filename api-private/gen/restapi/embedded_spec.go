@@ -214,28 +214,6 @@ func init() {
             }
           }
         }
-      },
-      "post": {
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "operationId": "UpdateUserProfile",
-        "parameters": [
-          {
-            "name": "userProfile",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/UserProfile"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok"
-          }
-        }
       }
     },
     "/userProfile/todoVisibility": {
@@ -694,28 +672,6 @@ func init() {
             "schema": {
               "$ref": "#/definitions/UserProfile"
             }
-          }
-        }
-      },
-      "post": {
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "operationId": "UpdateUserProfile",
-        "parameters": [
-          {
-            "name": "userProfile",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/UserProfile"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "ok"
           }
         }
       }

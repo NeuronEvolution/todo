@@ -68,9 +68,6 @@ func NewTodoPrivateAPI(spec *loads.Document) *TodoPrivateAPI {
 		UpdateTodoHandler: UpdateTodoHandlerFunc(func(params UpdateTodoParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation UpdateTodo has not yet been implemented")
 		}),
-		UpdateUserProfileHandler: UpdateUserProfileHandlerFunc(func(params UpdateUserProfileParams, principal interface{}) middleware.Responder {
-			return middleware.NotImplemented("operation UpdateUserProfile has not yet been implemented")
-		}),
 		UpdateUserProfileTodoVisibilityHandler: UpdateUserProfileTodoVisibilityHandlerFunc(func(params UpdateUserProfileTodoVisibilityParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation UpdateUserProfileTodoVisibility has not yet been implemented")
 		}),
@@ -143,8 +140,6 @@ type TodoPrivateAPI struct {
 	RemoveTodoHandler RemoveTodoHandler
 	// UpdateTodoHandler sets the operation handler for the update todo operation
 	UpdateTodoHandler UpdateTodoHandler
-	// UpdateUserProfileHandler sets the operation handler for the update user profile operation
-	UpdateUserProfileHandler UpdateUserProfileHandler
 	// UpdateUserProfileTodoVisibilityHandler sets the operation handler for the update user profile todo visibility operation
 	UpdateUserProfileTodoVisibilityHandler UpdateUserProfileTodoVisibilityHandler
 	// UpdateUserProfileUserNameHandler sets the operation handler for the update user profile user name operation
@@ -254,10 +249,6 @@ func (o *TodoPrivateAPI) Validate() error {
 
 	if o.UpdateTodoHandler == nil {
 		unregistered = append(unregistered, "UpdateTodoHandler")
-	}
-
-	if o.UpdateUserProfileHandler == nil {
-		unregistered = append(unregistered, "UpdateUserProfileHandler")
 	}
 
 	if o.UpdateUserProfileTodoVisibilityHandler == nil {
@@ -425,11 +416,6 @@ func (o *TodoPrivateAPI) initHandlerCache() {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
 	o.handlers["POST"]["/{todoId}"] = NewUpdateTodo(o.context, o.UpdateTodoHandler)
-
-	if o.handlers["POST"] == nil {
-		o.handlers["POST"] = make(map[string]http.Handler)
-	}
-	o.handlers["POST"]["/userProfile"] = NewUpdateUserProfile(o.context, o.UpdateUserProfileHandler)
 
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
