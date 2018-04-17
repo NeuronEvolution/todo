@@ -5,10 +5,10 @@ import (
 	"github.com/NeuronEvolution/todo/storages/todo_db"
 	"github.com/NeuronFramework/errors"
 	"github.com/NeuronFramework/rand"
-	"github.com/NeuronFramework/restful"
+	"github.com/NeuronFramework/rest"
 )
 
-func (s *TodoService) GetUserProfile(ctx *restful.Context, userID string) (userProfile *models.UserProfile, err error) {
+func (s *TodoService) GetUserProfile(ctx *rest.Context, userID string) (userProfile *models.UserProfile, err error) {
 	dbUserProfile, err := s.todoDB.UserProfile.GetQuery().UserId_Equal(userID).QueryOne(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func (s *TodoService) GetUserProfile(ctx *restful.Context, userID string) (userP
 	return todo_db.FromUserProfile(dbUserProfile), nil
 }
 
-func (s *TodoService) UpdateUserProfileTodoVisibility(ctx *restful.Context, userID string, visibility models.TodoVisibility) (err error) {
+func (s *TodoService) UpdateUserProfileTodoVisibility(ctx *rest.Context, userID string, visibility models.TodoVisibility) (err error) {
 	dbUserProfile, err := s.todoDB.UserProfile.GetQuery().UserId_Equal(userID).QueryOne(ctx, nil)
 	if err != nil {
 		return err
@@ -62,7 +62,7 @@ func (s *TodoService) UpdateUserProfileTodoVisibility(ctx *restful.Context, user
 	return nil
 }
 
-func (s *TodoService) UpdateUserProfileUserName(ctx *restful.Context, userID string, userName string) (err error) {
+func (s *TodoService) UpdateUserProfileUserName(ctx *rest.Context, userID string, userName string) (err error) {
 	dbUserProfile, err := s.todoDB.UserProfile.GetQuery().UserId_Equal(userID).QueryOne(ctx, nil)
 	if err != nil {
 		return err

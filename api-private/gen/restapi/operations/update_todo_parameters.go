@@ -69,8 +69,9 @@ func (o *UpdateTodoParams) BindRequest(r *http.Request, route *middleware.Matche
 			} else {
 				res = append(res, errors.NewParseError("todoItem", "body", "", err))
 			}
-
 		} else {
+
+			// validate body object
 			if err := body.Validate(route.Formats); err != nil {
 				res = append(res, err)
 			}
@@ -79,11 +80,9 @@ func (o *UpdateTodoParams) BindRequest(r *http.Request, route *middleware.Matche
 				o.TodoItem = &body
 			}
 		}
-
 	} else {
 		res = append(res, errors.Required("todoItem", "body"))
 	}
-
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}

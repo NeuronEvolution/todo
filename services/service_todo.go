@@ -5,10 +5,10 @@ import (
 	"github.com/NeuronEvolution/todo/storages/todo_db"
 	"github.com/NeuronFramework/errors"
 	"github.com/NeuronFramework/rand"
-	"github.com/NeuronFramework/restful"
+	"github.com/NeuronFramework/rest"
 )
 
-func (s *TodoService) GetTodoList(ctx *restful.Context, userId string) (result []*models.TodoItem, err error) {
+func (s *TodoService) GetTodoList(ctx *rest.Context, userId string) (result []*models.TodoItem, err error) {
 	dbTodoList, err := s.todoDB.Todo.GetQuery().UserId_Equal(userId).QueryList(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func (s *TodoService) GetTodoList(ctx *restful.Context, userId string) (result [
 	return todo_db.FromTodoList(dbTodoList), nil
 }
 
-func (s *TodoService) GetTodo(ctx *restful.Context, userId string, todoId string) (todoItem *models.TodoItem, err error) {
+func (s *TodoService) GetTodo(ctx *rest.Context, userId string, todoId string) (todoItem *models.TodoItem, err error) {
 	dbTodo, err := s.todoDB.Todo.GetQuery().
 		TodoId_Equal(todoId).And().UserId_Equal(userId).
 		QueryOne(ctx, nil)
@@ -48,7 +48,7 @@ func (s *TodoService) GetTodo(ctx *restful.Context, userId string, todoId string
 	return todo_db.FromTodo(dbTodo), nil
 }
 
-func (s *TodoService) AddTodo(ctx *restful.Context, userId string, todoItem *models.TodoItem) (todoId string, err error) {
+func (s *TodoService) AddTodo(ctx *rest.Context, userId string, todoItem *models.TodoItem) (todoId string, err error) {
 	if todoItem == nil {
 		return "", errors.InvalidParam("todoItem不能为空")
 	}
@@ -75,7 +75,7 @@ func (s *TodoService) AddTodo(ctx *restful.Context, userId string, todoItem *mod
 	return dbTodo.TodoId, nil
 }
 
-func (s *TodoService) UpdateTodo(ctx *restful.Context, userId string, todoID string, todoItem *models.TodoItem) (err error) {
+func (s *TodoService) UpdateTodo(ctx *rest.Context, userId string, todoID string, todoItem *models.TodoItem) (err error) {
 	if todoItem == nil {
 		return errors.InvalidParam("todoItem不能为空")
 	}
@@ -117,7 +117,7 @@ func (s *TodoService) UpdateTodo(ctx *restful.Context, userId string, todoID str
 	return nil
 }
 
-func (s *TodoService) RemoveTodo(ctx *restful.Context, userId string, todoId string) error {
+func (s *TodoService) RemoveTodo(ctx *rest.Context, userId string, todoId string) error {
 	dbTodo, err := s.todoDB.Todo.GetQuery().
 		UserId_Equal(userId).And().TodoId_Equal(todoId).
 		QueryOne(ctx, nil)

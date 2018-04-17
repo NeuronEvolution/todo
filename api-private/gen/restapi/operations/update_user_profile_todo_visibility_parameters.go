@@ -57,8 +57,9 @@ func (o *UpdateUserProfileTodoVisibilityParams) BindRequest(r *http.Request, rou
 			} else {
 				res = append(res, errors.NewParseError("visibility", "body", "", err))
 			}
-
 		} else {
+
+			// validate body object
 			if err := body.Validate(route.Formats); err != nil {
 				res = append(res, err)
 			}
@@ -67,11 +68,9 @@ func (o *UpdateUserProfileTodoVisibilityParams) BindRequest(r *http.Request, rou
 				o.Visibility = body
 			}
 		}
-
 	} else {
 		res = append(res, errors.Required("visibility", "body"))
 	}
-
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}

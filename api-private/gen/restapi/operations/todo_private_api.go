@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/NeuronFramework/restful"
+	"github.com/NeuronFramework/rest"
 	errors "github.com/go-openapi/errors"
 	loads "github.com/go-openapi/loads"
 	runtime "github.com/go-openapi/runtime"
@@ -32,7 +32,7 @@ func NewTodoPrivateAPI(spec *loads.Document) *TodoPrivateAPI {
 		customProducers:     make(map[string]runtime.Producer),
 		ServerShutdown:      func() {},
 		spec:                spec,
-		ServeError:          restful.ServeError,
+		ServeError:          rest.ServeError,
 		BasicAuthenticator:  security.BasicAuth,
 		APIKeyAuthenticator: security.APIKeyAuth,
 		BearerAuthenticator: security.BearerAuth,

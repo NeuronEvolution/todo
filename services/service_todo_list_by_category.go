@@ -4,11 +4,11 @@ import (
 	"github.com/NeuronEvolution/todo/models"
 	"github.com/NeuronEvolution/todo/storages/todo_db"
 	"github.com/NeuronFramework/errors"
-	"github.com/NeuronFramework/restful"
+	"github.com/NeuronFramework/rest"
 	"sort"
 )
 
-func (s *TodoService) GetTodoListByCategory(ctx *restful.Context, userId string, friendId string) (result []*models.TodoItemGroup, err error) {
+func (s *TodoService) GetTodoListByCategory(ctx *rest.Context, userId string, friendId string) (result []*models.TodoItemGroup, err error) {
 	targetUserID := userId
 	if friendId != "" && friendId != userId {
 		targetUserID = friendId

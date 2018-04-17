@@ -4,13 +4,13 @@ import (
 	"github.com/NeuronEvolution/todo/api-private/gen/restapi"
 	"github.com/NeuronEvolution/todo/api-private/gen/restapi/operations"
 	"github.com/NeuronEvolution/todo/cmd/todo-private-api/handler"
-	"github.com/NeuronFramework/restful"
+	"github.com/NeuronFramework/rest"
 	"github.com/go-openapi/loads"
 	"net/http"
 )
 
 func main() {
-	restful.Run(func() (http.Handler, error) {
+	rest.Run(func() (http.Handler, error) {
 		h, err := handler.New()
 		if err != nil {
 			return nil, err
