@@ -681,7 +681,7 @@ func (u *TodoUpdate) Update(ctx context.Context, tx *wrap.Tx, id uint64) (err er
 	s := "UPDATE todo SET " + strings.Join(u.keys, ",") + " WHERE id=?"
 	v := append(u.values, id)
 	if tx == nil {
-		_, err = u.dao.db.Exec(ctx, s, v)
+		_, err = u.dao.db.Exec(ctx, s, v...)
 	} else {
 		_, err = tx.Exec(ctx, s, v)
 	}
@@ -1117,7 +1117,7 @@ func (u *UserProfileUpdate) Update(ctx context.Context, tx *wrap.Tx, id uint64) 
 	s := "UPDATE user_profile SET " + strings.Join(u.keys, ",") + " WHERE id=?"
 	v := append(u.values, id)
 	if tx == nil {
-		_, err = u.dao.db.Exec(ctx, s, v)
+		_, err = u.dao.db.Exec(ctx, s, v...)
 	} else {
 		_, err = tx.Exec(ctx, s, v)
 	}
