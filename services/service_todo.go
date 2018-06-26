@@ -61,7 +61,7 @@ func (s *TodoService) AddTodo(ctx *rest.Context, userId string, todoItem *models
 	dbTodo := todo_db.ToTodo(todoItem)
 	dbTodo.UserId = userId
 	dbTodo.TodoId = rand.NextHex(16)
-	_, err = s.todoDB.Todo.Insert(ctx, nil, dbTodo, false)
+	_, err = s.todoDB.Todo.Query().Insert(ctx, nil, dbTodo)
 	if err != nil {
 		return "", err
 	}
@@ -129,7 +129,7 @@ func (s *TodoService) RemoveTodo(ctx *rest.Context, userId string, todoId string
 		return errors.NotFound("计划不存在")
 	}
 
-	_, err = s.todoDB.Todo.DeleteById(ctx, nil, dbTodo.Id)
+	_, err = s.todoDB.Todo.Query().IdEqual(dbTodo.Id).Delete(ctx, nil)
 	if err != nil {
 		return err
 	}

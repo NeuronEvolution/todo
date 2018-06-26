@@ -19,7 +19,7 @@ func (s *TodoService) GetUserProfile(ctx *rest.Context, userID string) (userProf
 		dbUserProfile.UserId = userID
 		dbUserProfile.UserName = "无名氏" + rand.NextNumberFixedLength(8)
 		dbUserProfile.TodoVisibility = string(models.TodoVisibilityPublic)
-		_, err = s.todoDB.UserProfile.Insert(ctx, nil, dbUserProfile, false)
+		_, err = s.todoDB.UserProfile.Query().Insert(ctx, nil, dbUserProfile)
 		if err != nil {
 			return nil, err
 		}

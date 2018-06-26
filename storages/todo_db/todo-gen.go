@@ -18,19 +18,22 @@ var _ = sql.ErrNoRows
 var _ = mysql.ErrOldProtocol
 
 type QueryBase struct {
-	where              *bytes.Buffer
-	whereParams        []interface{}
-	groupByFields      []string
-	groupByOrders      []bool
-	orderByFields      []string
-	orderByOrders      []bool
-	hasLimit           bool
-	limitStartIncluded int64
-	limitCount         int64
-	forUpdate          bool
-	forShare           bool
-	updateFields       []string
-	updateParams       []interface{}
+	tableName              string
+	where                  *bytes.Buffer
+	whereParams            []interface{}
+	groupByFields          []string
+	groupByOrders          []bool
+	orderByFields          []string
+	orderByOrders          []bool
+	hasLimit               bool
+	limitStartIncluded     int64
+	limitCount             int64
+	forUpdate              bool
+	forShare               bool
+	updateFields           []string
+	updateParams           []interface{}
+	getFields              []string
+	duplicatedUpdateFields []string
 }
 
 func (q *QueryBase) buildSelectQuery() (queryString string, params []interface{}) {
@@ -57,9 +60,10 @@ func (q *QueryBase) buildSelectQuery() (queryString string, params []interface{}
 		query.WriteString(strings.Join(groupByItems, ","))
 	}
 
+	var orderByItems []string
 	orderByCount := len(q.orderByFields)
 	if orderByCount > 0 {
-		orderByItems := make([]string, orderByCount)
+		orderByItems = make([]string, orderByCount)
 		for i, v := range q.orderByFields {
 			if q.orderByOrders[i] {
 				orderByItems[i] = v + " ASC"
@@ -73,6 +77,14 @@ func (q *QueryBase) buildSelectQuery() (queryString string, params []interface{}
 
 	if q.hasLimit {
 		query.WriteString(fmt.Sprintf(" LIMIT %d,%d", q.limitStartIncluded, q.limitCount))
+	}
+
+	if q.limitStartIncluded > 128 {
+		query = bytes.NewBufferString(fmt.Sprintf("INNER JOIN (SELECT id FROM %s %s) AS t USING(id)", q.tableName, query.String()))
+		if len(orderByItems) > 0 {
+			query.WriteString(" ORDER BY ")
+			query.WriteString(strings.Join(orderByItems, ","))
+		}
 	}
 
 	if q.forUpdate {
@@ -102,13 +114,6 @@ type Operation struct {
 type OperationQuery struct {
 	QueryBase
 	dao *OperationDao
-}
-
-func (dao *OperationDao) Query() *OperationQuery {
-	q := &OperationQuery{}
-	q.dao = dao
-	q.where = bytes.NewBufferString("")
-	return q
 }
 
 func (q *OperationQuery) Left() *OperationQuery {
@@ -507,76 +512,6 @@ func (q *OperationQuery) ForShare() *OperationQuery {
 	return q
 }
 
-func (q *OperationQuery) Select(ctx context.Context, tx *wrap.Tx) (e *Operation, err error) {
-	if !q.hasLimit {
-		q.limitCount = 1
-		q.hasLimit = true
-	}
-
-	queryString, params := q.buildSelectQuery()
-	query := bytes.NewBufferString("")
-	query.WriteString("SELECT id,create_time,operation_type,user_agent,user_id,api_name,friend_id,todo_id,todo_item,user_profile FROM operation ")
-	query.WriteString(queryString)
-	e = &Operation{}
-	row := q.dao.db.QueryRow(ctx, tx, query.String(), params...)
-	err = row.Scan(&e.Id, &e.CreateTime, &e.OperationType, &e.UserAgent, &e.UserId, &e.ApiName, &e.FriendId, &e.TodoId, &e.TodoItem, &e.UserProfile)
-	if err == wrap.ErrNoRows {
-		return nil, nil
-	}
-
-	return e, err
-}
-
-func (q *OperationQuery) SelectList(ctx context.Context, tx *wrap.Tx) (list []*Operation, err error) {
-	queryString, params := q.buildSelectQuery()
-	query := bytes.NewBufferString("")
-	query.WriteString("SELECT id,create_time,operation_type,user_agent,user_id,api_name,friend_id,todo_id,todo_item,user_profile FROM operation ")
-	query.WriteString(queryString)
-	rows, err := q.dao.db.Query(ctx, tx, query.String(), params...)
-	if err != nil {
-		return nil, err
-	}
-	for rows.Next() {
-		e := Operation{}
-		err = rows.Scan(&e.Id, &e.CreateTime, &e.OperationType, &e.UserAgent, &e.UserId, &e.ApiName, &e.FriendId, &e.TodoId, &e.TodoItem, &e.UserProfile)
-		if err != nil {
-			return nil, err
-		}
-		list = append(list, &e)
-	}
-	if rows.Err() != nil {
-		err = rows.Err()
-		return nil, err
-	}
-
-	return list, nil
-}
-
-func (q *OperationQuery) SelectCount(ctx context.Context, tx *wrap.Tx) (count int64, err error) {
-	queryString, params := q.buildSelectQuery()
-	query := bytes.NewBufferString("")
-	query.WriteString("SELECT COUNT(*) FROM operation ")
-	query.WriteString(queryString)
-	row := q.dao.db.QueryRow(ctx, tx, query.String(), params...)
-	err = row.Scan(&count)
-
-	return count, err
-}
-
-func (q *OperationQuery) SelectGroupBy(ctx context.Context, tx *wrap.Tx, withCount bool) (rows *wrap.Rows, err error) {
-	queryString, params := q.buildSelectQuery()
-	query := bytes.NewBufferString("")
-	query.WriteString("SELECT ")
-	query.WriteString(strings.Join(q.groupByFields, ","))
-	if withCount {
-		query.WriteString(",Count(*) ")
-	}
-	query.WriteString(" FROM operation ")
-	query.WriteString(queryString)
-
-	return q.dao.db.Query(ctx, tx, query.String(), params...)
-}
-
 func (q *OperationQuery) SetOperationType(v string) *OperationQuery {
 	q.updateFields = append(q.updateFields, "operation_type")
 	q.updateParams = append(q.updateParams, v)
@@ -625,6 +560,231 @@ func (q *OperationQuery) SetUserProfile(v string) *OperationQuery {
 	return q
 }
 
+func (q *OperationQuery) DuplicatedUpdateOperationType() *OperationQuery {
+	q.duplicatedUpdateFields = append(q.duplicatedUpdateFields, "operation_type=VALUES(operation_type)")
+	return q
+}
+
+func (q *OperationQuery) DuplicatedUpdateUserAgent() *OperationQuery {
+	q.duplicatedUpdateFields = append(q.duplicatedUpdateFields, "user_agent=VALUES(user_agent)")
+	return q
+}
+
+func (q *OperationQuery) DuplicatedUpdateUserId() *OperationQuery {
+	q.duplicatedUpdateFields = append(q.duplicatedUpdateFields, "user_id=VALUES(user_id)")
+	return q
+}
+
+func (q *OperationQuery) DuplicatedUpdateApiName() *OperationQuery {
+	q.duplicatedUpdateFields = append(q.duplicatedUpdateFields, "api_name=VALUES(api_name)")
+	return q
+}
+
+func (q *OperationQuery) DuplicatedUpdateFriendId() *OperationQuery {
+	q.duplicatedUpdateFields = append(q.duplicatedUpdateFields, "friend_id=VALUES(friend_id)")
+	return q
+}
+
+func (q *OperationQuery) DuplicatedUpdateTodoId() *OperationQuery {
+	q.duplicatedUpdateFields = append(q.duplicatedUpdateFields, "todo_id=VALUES(todo_id)")
+	return q
+}
+
+func (q *OperationQuery) DuplicatedUpdateTodoItem() *OperationQuery {
+	q.duplicatedUpdateFields = append(q.duplicatedUpdateFields, "todo_item=VALUES(todo_item)")
+	return q
+}
+
+func (q *OperationQuery) DuplicatedUpdateUserProfile() *OperationQuery {
+	q.duplicatedUpdateFields = append(q.duplicatedUpdateFields, "user_profile=VALUES(user_profile)")
+	return q
+}
+
+func (q *OperationQuery) GetId() *OperationQuery {
+	q.getFields = append(q.getFields, "id")
+	return q
+}
+
+func (q *OperationQuery) GetCreateTime() *OperationQuery {
+	q.getFields = append(q.getFields, "create_time")
+	return q
+}
+
+func (q *OperationQuery) GetOperationType() *OperationQuery {
+	q.getFields = append(q.getFields, "operation_type")
+	return q
+}
+
+func (q *OperationQuery) GetUserAgent() *OperationQuery {
+	q.getFields = append(q.getFields, "user_agent")
+	return q
+}
+
+func (q *OperationQuery) GetUserId() *OperationQuery {
+	q.getFields = append(q.getFields, "user_id")
+	return q
+}
+
+func (q *OperationQuery) GetApiName() *OperationQuery {
+	q.getFields = append(q.getFields, "api_name")
+	return q
+}
+
+func (q *OperationQuery) GetFriendId() *OperationQuery {
+	q.getFields = append(q.getFields, "friend_id")
+	return q
+}
+
+func (q *OperationQuery) GetTodoId() *OperationQuery {
+	q.getFields = append(q.getFields, "todo_id")
+	return q
+}
+
+func (q *OperationQuery) GetTodoItem() *OperationQuery {
+	q.getFields = append(q.getFields, "todo_item")
+	return q
+}
+
+func (q *OperationQuery) GetUserProfile() *OperationQuery {
+	q.getFields = append(q.getFields, "user_profile")
+	return q
+}
+
+func (q *OperationQuery) Select(ctx context.Context, tx *wrap.Tx) (e *Operation, err error) {
+	if !q.hasLimit {
+		q.limitCount = 1
+		q.hasLimit = true
+	}
+
+	queryString, params := q.buildSelectQuery()
+	query := bytes.NewBufferString("")
+	if len(q.getFields) == 0 {
+		query.WriteString("SELECT id,create_time,operation_type,user_agent,user_id,api_name,friend_id,todo_id,todo_item,user_profile FROM operation ")
+	} else {
+		query.WriteString("SELECT ")
+		query.WriteString(strings.Join(q.getFields, ","))
+		query.WriteString(" FROM operation ")
+	}
+	query.WriteString(queryString)
+	e = &Operation{}
+	row := q.dao.db.QueryRow(ctx, tx, query.String(), params...)
+	err = row.Scan(&e.Id, &e.CreateTime, &e.OperationType, &e.UserAgent, &e.UserId, &e.ApiName, &e.FriendId, &e.TodoId, &e.TodoItem, &e.UserProfile)
+	if err == wrap.ErrNoRows {
+		return nil, nil
+	}
+
+	return e, err
+}
+
+func (q *OperationQuery) SelectList(ctx context.Context, tx *wrap.Tx) (list []*Operation, err error) {
+	queryString, params := q.buildSelectQuery()
+	query := bytes.NewBufferString("")
+	if len(q.getFields) == 0 {
+		query.WriteString("SELECT id,create_time,operation_type,user_agent,user_id,api_name,friend_id,todo_id,todo_item,user_profile FROM operation ")
+	} else {
+		query.WriteString("SELECT ")
+		query.WriteString(strings.Join(q.getFields, ","))
+		query.WriteString(" FROM operation ")
+	}
+	query.WriteString(queryString)
+	rows, err := q.dao.db.Query(ctx, tx, query.String(), params...)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		e := Operation{}
+		err = rows.Scan(&e.Id, &e.CreateTime, &e.OperationType, &e.UserAgent, &e.UserId, &e.ApiName, &e.FriendId, &e.TodoId, &e.TodoItem, &e.UserProfile)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, &e)
+	}
+	if rows.Err() != nil {
+		err = rows.Err()
+		return nil, err
+	}
+
+	return list, nil
+}
+
+func (q *OperationQuery) SelectCount(ctx context.Context, tx *wrap.Tx) (count int64, err error) {
+	queryString, params := q.buildSelectQuery()
+	query := bytes.NewBufferString("")
+	query.WriteString("SELECT COUNT(*) FROM operation ")
+	query.WriteString(queryString)
+	row := q.dao.db.QueryRow(ctx, tx, query.String(), params...)
+	err = row.Scan(&count)
+
+	return count, err
+}
+
+func (q *OperationQuery) SelectGroupBy(ctx context.Context, tx *wrap.Tx, withCount bool) (rows *wrap.Rows, err error) {
+	queryString, params := q.buildSelectQuery()
+	query := bytes.NewBufferString("")
+	query.WriteString("SELECT ")
+	query.WriteString(strings.Join(q.groupByFields, ","))
+	if withCount {
+		query.WriteString(",Count(*) ")
+	}
+	query.WriteString(" FROM operation ")
+	query.WriteString(queryString)
+
+	return q.dao.db.Query(ctx, tx, query.String(), params...)
+}
+
+func (q *OperationQuery) SelectRow(ctx context.Context, tx *wrap.Tx) (row *wrap.Row) {
+	if !q.hasLimit {
+		q.limitCount = 1
+		q.hasLimit = true
+	}
+
+	queryString, params := q.buildSelectQuery()
+	query := bytes.NewBufferString("")
+	query.WriteString("SELECT ")
+	query.WriteString(strings.Join(q.getFields, ","))
+	query.WriteString(" FROM operation ")
+	query.WriteString(queryString)
+	return q.dao.db.QueryRow(ctx, tx, query.String(), params...)
+}
+
+func (q *OperationQuery) SelectRows(ctx context.Context, tx *wrap.Tx) (rows *wrap.Rows, err error) {
+	queryString, params := q.buildSelectQuery()
+	query := bytes.NewBufferString("")
+	query.WriteString("SELECT ")
+	query.WriteString(strings.Join(q.getFields, ","))
+	query.WriteString(" FROM operation ")
+	query.WriteString(queryString)
+	return q.dao.db.Query(ctx, tx, query.String(), params...)
+}
+
+func (q *OperationQuery) Insert(ctx context.Context, tx *wrap.Tx, e *Operation) (result *wrap.Result, err error) {
+	query := bytes.NewBufferString("")
+	query.WriteString("INSERT INTO operation (operation_type,user_agent,user_id,api_name,friend_id,todo_id,todo_item,user_profile) VALUES (?,?,?,?,?,?,?,?)")
+	params := []interface{}{e.OperationType, e.UserAgent, e.UserId, e.ApiName, e.FriendId, e.TodoId, e.TodoItem, e.UserProfile}
+	return q.dao.db.Exec(ctx, tx, query.String(), params...)
+}
+
+func (q *OperationQuery) BatchInsert(ctx context.Context, tx *wrap.Tx, list []*Operation) (result *wrap.Result, err error) {
+	query := bytes.NewBufferString("")
+	query.WriteString("INSERT INTO operation (operation_type,user_agent,user_id,api_name,friend_id,todo_id,todo_item,user_profile) VALUES ")
+	query.WriteString(wrap.RepeatWithSeparator("(?,?,?,?,?,?,?,?)", len(list), ","))
+	params := make([]interface{}, len(list)*8)
+	offset := 0
+	for _, e := range list {
+		params[offset+0] = e.OperationType
+		params[offset+1] = e.UserAgent
+		params[offset+2] = e.UserId
+		params[offset+3] = e.ApiName
+		params[offset+4] = e.FriendId
+		params[offset+5] = e.TodoId
+		params[offset+6] = e.TodoItem
+		params[offset+7] = e.UserProfile
+		offset += 8
+	}
+
+	return q.dao.db.Exec(ctx, tx, query.String(), params...)
+}
+
 func (q *OperationQuery) Update(ctx context.Context, tx *wrap.Tx) (result *wrap.Result, err error) {
 	query := bytes.NewBufferString("")
 	var params []interface{}
@@ -635,6 +795,7 @@ func (q *OperationQuery) Update(ctx context.Context, tx *wrap.Tx) (result *wrap.
 		updateItems[i] = v + "=?"
 	}
 	query.WriteString(strings.Join(updateItems, ","))
+	query.WriteString(",update_time=now()")
 	where := q.where.String()
 	if where != "" {
 		query.WriteString(" WHERE ")
@@ -663,54 +824,12 @@ func NewOperationDao(db *DB) (t *OperationDao, err error) {
 	return t, nil
 }
 
-func (dao *OperationDao) Insert(ctx context.Context, tx *wrap.Tx, e *Operation) (result *wrap.Result, err error) {
-	query := bytes.NewBufferString("")
-	query.WriteString("INSERT INTO operation (operation_type,user_agent,user_id,api_name,friend_id,todo_id,todo_item,user_profile) VALUES (?,?,?,?,?,?,?,?)")
-	params := []interface{}{e.OperationType, e.UserAgent, e.UserId, e.ApiName, e.FriendId, e.TodoId, e.TodoItem, e.UserProfile}
-	return dao.db.Exec(ctx, tx, query.String(), params...)
-}
-
-func (dao *OperationDao) BatchInsert(ctx context.Context, tx *wrap.Tx, list []*Operation) (result *wrap.Result, err error) {
-	query := bytes.NewBufferString("")
-	query.WriteString("INSERT INTO operation (operation_type,user_agent,user_id,api_name,friend_id,todo_id,todo_item,user_profile) VALUES ")
-	query.WriteString(wrap.RepeatWithSeparator("(?,?,?,?,?,?,?,?)", len(list), ","))
-	params := make([]interface{}, len(list)*8)
-	offset := 0
-	for _, e := range list {
-		params[offset+0] = e.OperationType
-		params[offset+1] = e.UserAgent
-		params[offset+2] = e.UserId
-		params[offset+3] = e.ApiName
-		params[offset+4] = e.FriendId
-		params[offset+5] = e.TodoId
-		params[offset+6] = e.TodoItem
-		params[offset+7] = e.UserProfile
-		offset += 8
-	}
-
-	return dao.db.Exec(ctx, tx, query.String(), params...)
-}
-
-func (dao *OperationDao) DeleteById(ctx context.Context, tx *wrap.Tx, id uint64) (result *wrap.Result, err error) {
-	query := "DELETE FROM Operation WHERE id=?"
-	return dao.db.Exec(ctx, tx, query, id)
-}
-
-func (dao *OperationDao) UpdateById(ctx context.Context, tx *wrap.Tx, e *Operation) (result *wrap.Result, err error) {
-	query := "UPDATE operation SET operation_type=?,user_agent=?,user_id=?,api_name=?,friend_id=?,todo_id=?,todo_item=?,user_profile=? WHERE id=?"
-	params := []interface{}{e.OperationType, e.UserAgent, e.UserId, e.ApiName, e.FriendId, e.TodoId, e.TodoItem, e.UserProfile, e.Id}
-	return dao.db.Exec(ctx, tx, query, params...)
-}
-
-func (dao *OperationDao) SelectById(ctx context.Context, tx *wrap.Tx, id int64) (e *Operation, err error) {
-	query := "SELECT id,create_time,operation_type,user_agent,user_id,api_name,friend_id,todo_id,todo_item,user_profile FROM operation WHERE id=?"
-	row := dao.db.QueryRow(ctx, tx, query, id)
-	e = &Operation{}
-	err = row.Scan(&e.Id, &e.CreateTime, &e.OperationType, &e.UserAgent, &e.UserId, &e.ApiName, &e.FriendId, &e.TodoId, &e.TodoItem, &e.UserProfile)
-	if err == wrap.ErrNoRows {
-		return nil, nil
-	}
-	return e, err
+func (dao *OperationDao) Query() *OperationQuery {
+	q := &OperationQuery{}
+	q.dao = dao
+	q.tableName = "operation"
+	q.where = bytes.NewBufferString("")
+	return q
 }
 
 type Todo struct {
@@ -730,13 +849,6 @@ type Todo struct {
 type TodoQuery struct {
 	QueryBase
 	dao *TodoDao
-}
-
-func (dao *TodoDao) Query() *TodoQuery {
-	q := &TodoQuery{}
-	q.dao = dao
-	q.where = bytes.NewBufferString("")
-	return q
 }
 
 func (q *TodoQuery) Left() *TodoQuery {
@@ -1207,76 +1319,6 @@ func (q *TodoQuery) ForShare() *TodoQuery {
 	return q
 }
 
-func (q *TodoQuery) Select(ctx context.Context, tx *wrap.Tx) (e *Todo, err error) {
-	if !q.hasLimit {
-		q.limitCount = 1
-		q.hasLimit = true
-	}
-
-	queryString, params := q.buildSelectQuery()
-	query := bytes.NewBufferString("")
-	query.WriteString("SELECT id,create_time,update_time,update_version,todo_id,user_id,todo_category,todo_title,todo_desc,todo_status,todo_priority FROM todo ")
-	query.WriteString(queryString)
-	e = &Todo{}
-	row := q.dao.db.QueryRow(ctx, tx, query.String(), params...)
-	err = row.Scan(&e.Id, &e.CreateTime, &e.UpdateTime, &e.UpdateVersion, &e.TodoId, &e.UserId, &e.TodoCategory, &e.TodoTitle, &e.TodoDesc, &e.TodoStatus, &e.TodoPriority)
-	if err == wrap.ErrNoRows {
-		return nil, nil
-	}
-
-	return e, err
-}
-
-func (q *TodoQuery) SelectList(ctx context.Context, tx *wrap.Tx) (list []*Todo, err error) {
-	queryString, params := q.buildSelectQuery()
-	query := bytes.NewBufferString("")
-	query.WriteString("SELECT id,create_time,update_time,update_version,todo_id,user_id,todo_category,todo_title,todo_desc,todo_status,todo_priority FROM todo ")
-	query.WriteString(queryString)
-	rows, err := q.dao.db.Query(ctx, tx, query.String(), params...)
-	if err != nil {
-		return nil, err
-	}
-	for rows.Next() {
-		e := Todo{}
-		err = rows.Scan(&e.Id, &e.CreateTime, &e.UpdateTime, &e.UpdateVersion, &e.TodoId, &e.UserId, &e.TodoCategory, &e.TodoTitle, &e.TodoDesc, &e.TodoStatus, &e.TodoPriority)
-		if err != nil {
-			return nil, err
-		}
-		list = append(list, &e)
-	}
-	if rows.Err() != nil {
-		err = rows.Err()
-		return nil, err
-	}
-
-	return list, nil
-}
-
-func (q *TodoQuery) SelectCount(ctx context.Context, tx *wrap.Tx) (count int64, err error) {
-	queryString, params := q.buildSelectQuery()
-	query := bytes.NewBufferString("")
-	query.WriteString("SELECT COUNT(*) FROM todo ")
-	query.WriteString(queryString)
-	row := q.dao.db.QueryRow(ctx, tx, query.String(), params...)
-	err = row.Scan(&count)
-
-	return count, err
-}
-
-func (q *TodoQuery) SelectGroupBy(ctx context.Context, tx *wrap.Tx, withCount bool) (rows *wrap.Rows, err error) {
-	queryString, params := q.buildSelectQuery()
-	query := bytes.NewBufferString("")
-	query.WriteString("SELECT ")
-	query.WriteString(strings.Join(q.groupByFields, ","))
-	if withCount {
-		query.WriteString(",Count(*) ")
-	}
-	query.WriteString(" FROM todo ")
-	query.WriteString(queryString)
-
-	return q.dao.db.Query(ctx, tx, query.String(), params...)
-}
-
 func (q *TodoQuery) SetUpdateVersion(v int64) *TodoQuery {
 	q.updateFields = append(q.updateFields, "update_version")
 	q.updateParams = append(q.updateParams, v)
@@ -1325,6 +1367,271 @@ func (q *TodoQuery) SetTodoPriority(v int32) *TodoQuery {
 	return q
 }
 
+func (q *TodoQuery) DuplicatedUpdateUpdateVersion() *TodoQuery {
+	q.duplicatedUpdateFields = append(q.duplicatedUpdateFields, "update_version=VALUES(update_version)")
+	return q
+}
+
+func (q *TodoQuery) DuplicatedUpdateUserId() *TodoQuery {
+	q.duplicatedUpdateFields = append(q.duplicatedUpdateFields, "user_id=VALUES(user_id)")
+	return q
+}
+
+func (q *TodoQuery) DuplicatedUpdateTodoCategory() *TodoQuery {
+	q.duplicatedUpdateFields = append(q.duplicatedUpdateFields, "todo_category=VALUES(todo_category)")
+	return q
+}
+
+func (q *TodoQuery) DuplicatedUpdateTodoTitle() *TodoQuery {
+	q.duplicatedUpdateFields = append(q.duplicatedUpdateFields, "todo_title=VALUES(todo_title)")
+	return q
+}
+
+func (q *TodoQuery) DuplicatedUpdateTodoDesc() *TodoQuery {
+	q.duplicatedUpdateFields = append(q.duplicatedUpdateFields, "todo_desc=VALUES(todo_desc)")
+	return q
+}
+
+func (q *TodoQuery) DuplicatedUpdateTodoStatus() *TodoQuery {
+	q.duplicatedUpdateFields = append(q.duplicatedUpdateFields, "todo_status=VALUES(todo_status)")
+	return q
+}
+
+func (q *TodoQuery) DuplicatedUpdateTodoPriority() *TodoQuery {
+	q.duplicatedUpdateFields = append(q.duplicatedUpdateFields, "todo_priority=VALUES(todo_priority)")
+	return q
+}
+
+func (q *TodoQuery) GetId() *TodoQuery {
+	q.getFields = append(q.getFields, "id")
+	return q
+}
+
+func (q *TodoQuery) GetCreateTime() *TodoQuery {
+	q.getFields = append(q.getFields, "create_time")
+	return q
+}
+
+func (q *TodoQuery) GetUpdateTime() *TodoQuery {
+	q.getFields = append(q.getFields, "update_time")
+	return q
+}
+
+func (q *TodoQuery) GetUpdateVersion() *TodoQuery {
+	q.getFields = append(q.getFields, "update_version")
+	return q
+}
+
+func (q *TodoQuery) GetTodoId() *TodoQuery {
+	q.getFields = append(q.getFields, "todo_id")
+	return q
+}
+
+func (q *TodoQuery) GetUserId() *TodoQuery {
+	q.getFields = append(q.getFields, "user_id")
+	return q
+}
+
+func (q *TodoQuery) GetTodoCategory() *TodoQuery {
+	q.getFields = append(q.getFields, "todo_category")
+	return q
+}
+
+func (q *TodoQuery) GetTodoTitle() *TodoQuery {
+	q.getFields = append(q.getFields, "todo_title")
+	return q
+}
+
+func (q *TodoQuery) GetTodoDesc() *TodoQuery {
+	q.getFields = append(q.getFields, "todo_desc")
+	return q
+}
+
+func (q *TodoQuery) GetTodoStatus() *TodoQuery {
+	q.getFields = append(q.getFields, "todo_status")
+	return q
+}
+
+func (q *TodoQuery) GetTodoPriority() *TodoQuery {
+	q.getFields = append(q.getFields, "todo_priority")
+	return q
+}
+
+func (q *TodoQuery) Select(ctx context.Context, tx *wrap.Tx) (e *Todo, err error) {
+	if !q.hasLimit {
+		q.limitCount = 1
+		q.hasLimit = true
+	}
+
+	queryString, params := q.buildSelectQuery()
+	query := bytes.NewBufferString("")
+	if len(q.getFields) == 0 {
+		query.WriteString("SELECT id,create_time,update_time,update_version,todo_id,user_id,todo_category,todo_title,todo_desc,todo_status,todo_priority FROM todo ")
+	} else {
+		query.WriteString("SELECT ")
+		query.WriteString(strings.Join(q.getFields, ","))
+		query.WriteString(" FROM todo ")
+	}
+	query.WriteString(queryString)
+	e = &Todo{}
+	row := q.dao.db.QueryRow(ctx, tx, query.String(), params...)
+	err = row.Scan(&e.Id, &e.CreateTime, &e.UpdateTime, &e.UpdateVersion, &e.TodoId, &e.UserId, &e.TodoCategory, &e.TodoTitle, &e.TodoDesc, &e.TodoStatus, &e.TodoPriority)
+	if err == wrap.ErrNoRows {
+		return nil, nil
+	}
+
+	return e, err
+}
+
+func (q *TodoQuery) SelectList(ctx context.Context, tx *wrap.Tx) (list []*Todo, err error) {
+	queryString, params := q.buildSelectQuery()
+	query := bytes.NewBufferString("")
+	if len(q.getFields) == 0 {
+		query.WriteString("SELECT id,create_time,update_time,update_version,todo_id,user_id,todo_category,todo_title,todo_desc,todo_status,todo_priority FROM todo ")
+	} else {
+		query.WriteString("SELECT ")
+		query.WriteString(strings.Join(q.getFields, ","))
+		query.WriteString(" FROM todo ")
+	}
+	query.WriteString(queryString)
+	rows, err := q.dao.db.Query(ctx, tx, query.String(), params...)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		e := Todo{}
+		err = rows.Scan(&e.Id, &e.CreateTime, &e.UpdateTime, &e.UpdateVersion, &e.TodoId, &e.UserId, &e.TodoCategory, &e.TodoTitle, &e.TodoDesc, &e.TodoStatus, &e.TodoPriority)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, &e)
+	}
+	if rows.Err() != nil {
+		err = rows.Err()
+		return nil, err
+	}
+
+	return list, nil
+}
+
+func (q *TodoQuery) SelectCount(ctx context.Context, tx *wrap.Tx) (count int64, err error) {
+	queryString, params := q.buildSelectQuery()
+	query := bytes.NewBufferString("")
+	query.WriteString("SELECT COUNT(*) FROM todo ")
+	query.WriteString(queryString)
+	row := q.dao.db.QueryRow(ctx, tx, query.String(), params...)
+	err = row.Scan(&count)
+
+	return count, err
+}
+
+func (q *TodoQuery) SelectGroupBy(ctx context.Context, tx *wrap.Tx, withCount bool) (rows *wrap.Rows, err error) {
+	queryString, params := q.buildSelectQuery()
+	query := bytes.NewBufferString("")
+	query.WriteString("SELECT ")
+	query.WriteString(strings.Join(q.groupByFields, ","))
+	if withCount {
+		query.WriteString(",Count(*) ")
+	}
+	query.WriteString(" FROM todo ")
+	query.WriteString(queryString)
+
+	return q.dao.db.Query(ctx, tx, query.String(), params...)
+}
+
+func (q *TodoQuery) SelectRow(ctx context.Context, tx *wrap.Tx) (row *wrap.Row) {
+	if !q.hasLimit {
+		q.limitCount = 1
+		q.hasLimit = true
+	}
+
+	queryString, params := q.buildSelectQuery()
+	query := bytes.NewBufferString("")
+	query.WriteString("SELECT ")
+	query.WriteString(strings.Join(q.getFields, ","))
+	query.WriteString(" FROM todo ")
+	query.WriteString(queryString)
+	return q.dao.db.QueryRow(ctx, tx, query.String(), params...)
+}
+
+func (q *TodoQuery) SelectRows(ctx context.Context, tx *wrap.Tx) (rows *wrap.Rows, err error) {
+	queryString, params := q.buildSelectQuery()
+	query := bytes.NewBufferString("")
+	query.WriteString("SELECT ")
+	query.WriteString(strings.Join(q.getFields, ","))
+	query.WriteString(" FROM todo ")
+	query.WriteString(queryString)
+	return q.dao.db.Query(ctx, tx, query.String(), params...)
+}
+
+func (q *TodoQuery) Insert(ctx context.Context, tx *wrap.Tx, e *Todo) (result *wrap.Result, err error) {
+	query := bytes.NewBufferString("")
+	query.WriteString("INSERT INTO todo (update_version,todo_id,user_id,todo_category,todo_title,todo_desc,todo_status,todo_priority) VALUES (?,?,?,?,?,?,?,?)")
+	params := []interface{}{e.UpdateVersion, e.TodoId, e.UserId, e.TodoCategory, e.TodoTitle, e.TodoDesc, e.TodoStatus, e.TodoPriority}
+	return q.dao.db.Exec(ctx, tx, query.String(), params...)
+}
+
+func (q *TodoQuery) BatchInsert(ctx context.Context, tx *wrap.Tx, list []*Todo) (result *wrap.Result, err error) {
+	query := bytes.NewBufferString("")
+	query.WriteString("INSERT INTO todo (update_version,todo_id,user_id,todo_category,todo_title,todo_desc,todo_status,todo_priority) VALUES ")
+	query.WriteString(wrap.RepeatWithSeparator("(?,?,?,?,?,?,?,?)", len(list), ","))
+	params := make([]interface{}, len(list)*8)
+	offset := 0
+	for _, e := range list {
+		params[offset+0] = e.UpdateVersion
+		params[offset+1] = e.TodoId
+		params[offset+2] = e.UserId
+		params[offset+3] = e.TodoCategory
+		params[offset+4] = e.TodoTitle
+		params[offset+5] = e.TodoDesc
+		params[offset+6] = e.TodoStatus
+		params[offset+7] = e.TodoPriority
+		offset += 8
+	}
+
+	return q.dao.db.Exec(ctx, tx, query.String(), params...)
+}
+
+func (q *TodoQuery) InsertOnDuplicatedKeyUpdate(ctx context.Context, tx *wrap.Tx, e *Todo) (result *wrap.Result, err error) {
+	query := bytes.NewBufferString("")
+	query.WriteString("INSERT INTO todo (update_version,todo_id,user_id,todo_category,todo_title,todo_desc,todo_status,todo_priority) VALUES (?,?,?,?,?,?,?,?)")
+	query.WriteString(" ON DUPLICATED KEY UPDATE ")
+	if len(q.duplicatedUpdateFields) > 0 {
+		query.WriteString(strings.Join(q.duplicatedUpdateFields, ","))
+		query.WriteString(",")
+	}
+	query.WriteString("update_time=now()")
+	params := []interface{}{e.UpdateVersion, e.TodoId, e.UserId, e.TodoCategory, e.TodoTitle, e.TodoDesc, e.TodoStatus, e.TodoPriority}
+	return q.dao.db.Exec(ctx, tx, query.String(), params...)
+}
+
+func (q *TodoQuery) BatchInsertOnDuplicatedKeyUpdate(ctx context.Context, tx *wrap.Tx, list []*Todo) (result *wrap.Result, err error) {
+	query := bytes.NewBufferString("")
+	query.WriteString("INSERT INTO todo (update_version,todo_id,user_id,todo_category,todo_title,todo_desc,todo_status,todo_priority) VALUES ")
+	query.WriteString(wrap.RepeatWithSeparator("(?,?,?,?,?,?,?,?)", len(list), ","))
+	query.WriteString(" ON DUPLICATED KEY UPDATE")
+	if len(q.duplicatedUpdateFields) > 0 {
+		query.WriteString(strings.Join(q.duplicatedUpdateFields, ","))
+		query.WriteString(",")
+	}
+	query.WriteString("update_time=now()")
+	params := make([]interface{}, len(list)*8)
+	offset := 0
+	for _, e := range list {
+		params[offset+0] = e.UpdateVersion
+		params[offset+1] = e.TodoId
+		params[offset+2] = e.UserId
+		params[offset+3] = e.TodoCategory
+		params[offset+4] = e.TodoTitle
+		params[offset+5] = e.TodoDesc
+		params[offset+6] = e.TodoStatus
+		params[offset+7] = e.TodoPriority
+		offset += 8
+	}
+
+	return q.dao.db.Exec(ctx, tx, query.String(), params...)
+}
+
 func (q *TodoQuery) Update(ctx context.Context, tx *wrap.Tx) (result *wrap.Result, err error) {
 	query := bytes.NewBufferString("")
 	var params []interface{}
@@ -1335,6 +1642,7 @@ func (q *TodoQuery) Update(ctx context.Context, tx *wrap.Tx) (result *wrap.Resul
 		updateItems[i] = v + "=?"
 	}
 	query.WriteString(strings.Join(updateItems, ","))
+	query.WriteString(",update_time=now()")
 	where := q.where.String()
 	if where != "" {
 		query.WriteString(" WHERE ")
@@ -1363,60 +1671,12 @@ func NewTodoDao(db *DB) (t *TodoDao, err error) {
 	return t, nil
 }
 
-func (dao *TodoDao) Insert(ctx context.Context, tx *wrap.Tx, e *Todo, onDuplicatedKeyUpdate bool) (result *wrap.Result, err error) {
-	query := bytes.NewBufferString("")
-	query.WriteString("INSERT INTO todo (update_version,todo_id,user_id,todo_category,todo_title,todo_desc,todo_status,todo_priority) VALUES (?,?,?,?,?,?,?,?)")
-	if onDuplicatedKeyUpdate {
-		query.WriteString(" ON DUPLICATED KEY UPDATE update_version=VALUES(update_version),user_id=VALUES(user_id),todo_category=VALUES(todo_category),todo_title=VALUES(todo_title),todo_desc=VALUES(todo_desc),todo_status=VALUES(todo_status),todo_priority=VALUES(todo_priority)")
-	}
-	params := []interface{}{e.UpdateVersion, e.TodoId, e.UserId, e.TodoCategory, e.TodoTitle, e.TodoDesc, e.TodoStatus, e.TodoPriority}
-	return dao.db.Exec(ctx, tx, query.String(), params...)
-}
-
-func (dao *TodoDao) BatchInsert(ctx context.Context, tx *wrap.Tx, list []*Todo, onDuplicatedKeyUpdate bool) (result *wrap.Result, err error) {
-	query := bytes.NewBufferString("")
-	query.WriteString("INSERT INTO todo (update_version,todo_id,user_id,todo_category,todo_title,todo_desc,todo_status,todo_priority) VALUES ")
-	query.WriteString(wrap.RepeatWithSeparator("(?,?,?,?,?,?,?,?)", len(list), ","))
-	if onDuplicatedKeyUpdate {
-		query.WriteString(" ON DUPLICATED KEY UPDATE update_version=VALUES(update_version),user_id=VALUES(user_id),todo_category=VALUES(todo_category),todo_title=VALUES(todo_title),todo_desc=VALUES(todo_desc),todo_status=VALUES(todo_status),todo_priority=VALUES(todo_priority)")
-	}
-	params := make([]interface{}, len(list)*8)
-	offset := 0
-	for _, e := range list {
-		params[offset+0] = e.UpdateVersion
-		params[offset+1] = e.TodoId
-		params[offset+2] = e.UserId
-		params[offset+3] = e.TodoCategory
-		params[offset+4] = e.TodoTitle
-		params[offset+5] = e.TodoDesc
-		params[offset+6] = e.TodoStatus
-		params[offset+7] = e.TodoPriority
-		offset += 8
-	}
-
-	return dao.db.Exec(ctx, tx, query.String(), params...)
-}
-
-func (dao *TodoDao) DeleteById(ctx context.Context, tx *wrap.Tx, id uint64) (result *wrap.Result, err error) {
-	query := "DELETE FROM Todo WHERE id=?"
-	return dao.db.Exec(ctx, tx, query, id)
-}
-
-func (dao *TodoDao) UpdateById(ctx context.Context, tx *wrap.Tx, e *Todo) (result *wrap.Result, err error) {
-	query := "UPDATE todo SET update_version=?,todo_id=?,user_id=?,todo_category=?,todo_title=?,todo_desc=?,todo_status=?,todo_priority=? WHERE id=?"
-	params := []interface{}{e.UpdateVersion, e.TodoId, e.UserId, e.TodoCategory, e.TodoTitle, e.TodoDesc, e.TodoStatus, e.TodoPriority, e.Id}
-	return dao.db.Exec(ctx, tx, query, params...)
-}
-
-func (dao *TodoDao) SelectById(ctx context.Context, tx *wrap.Tx, id int64) (e *Todo, err error) {
-	query := "SELECT id,create_time,update_time,update_version,todo_id,user_id,todo_category,todo_title,todo_desc,todo_status,todo_priority FROM todo WHERE id=?"
-	row := dao.db.QueryRow(ctx, tx, query, id)
-	e = &Todo{}
-	err = row.Scan(&e.Id, &e.CreateTime, &e.UpdateTime, &e.UpdateVersion, &e.TodoId, &e.UserId, &e.TodoCategory, &e.TodoTitle, &e.TodoDesc, &e.TodoStatus, &e.TodoPriority)
-	if err == wrap.ErrNoRows {
-		return nil, nil
-	}
-	return e, err
+func (dao *TodoDao) Query() *TodoQuery {
+	q := &TodoQuery{}
+	q.dao = dao
+	q.tableName = "todo"
+	q.where = bytes.NewBufferString("")
+	return q
 }
 
 type UserProfile struct {
@@ -1432,13 +1692,6 @@ type UserProfile struct {
 type UserProfileQuery struct {
 	QueryBase
 	dao *UserProfileDao
-}
-
-func (dao *UserProfileDao) Query() *UserProfileQuery {
-	q := &UserProfileQuery{}
-	q.dao = dao
-	q.where = bytes.NewBufferString("")
-	return q
 }
 
 func (q *UserProfileQuery) Left() *UserProfileQuery {
@@ -1757,6 +2010,80 @@ func (q *UserProfileQuery) ForShare() *UserProfileQuery {
 	return q
 }
 
+func (q *UserProfileQuery) SetUpdateVersion(v int64) *UserProfileQuery {
+	q.updateFields = append(q.updateFields, "update_version")
+	q.updateParams = append(q.updateParams, v)
+	return q
+}
+
+func (q *UserProfileQuery) SetUserId(v string) *UserProfileQuery {
+	q.updateFields = append(q.updateFields, "user_id")
+	q.updateParams = append(q.updateParams, v)
+	return q
+}
+
+func (q *UserProfileQuery) SetUserName(v string) *UserProfileQuery {
+	q.updateFields = append(q.updateFields, "user_name")
+	q.updateParams = append(q.updateParams, v)
+	return q
+}
+
+func (q *UserProfileQuery) SetTodoVisibility(v string) *UserProfileQuery {
+	q.updateFields = append(q.updateFields, "todo_visibility")
+	q.updateParams = append(q.updateParams, v)
+	return q
+}
+
+func (q *UserProfileQuery) DuplicatedUpdateUpdateVersion() *UserProfileQuery {
+	q.duplicatedUpdateFields = append(q.duplicatedUpdateFields, "update_version=VALUES(update_version)")
+	return q
+}
+
+func (q *UserProfileQuery) DuplicatedUpdateUserName() *UserProfileQuery {
+	q.duplicatedUpdateFields = append(q.duplicatedUpdateFields, "user_name=VALUES(user_name)")
+	return q
+}
+
+func (q *UserProfileQuery) DuplicatedUpdateTodoVisibility() *UserProfileQuery {
+	q.duplicatedUpdateFields = append(q.duplicatedUpdateFields, "todo_visibility=VALUES(todo_visibility)")
+	return q
+}
+
+func (q *UserProfileQuery) GetId() *UserProfileQuery {
+	q.getFields = append(q.getFields, "id")
+	return q
+}
+
+func (q *UserProfileQuery) GetCreateTime() *UserProfileQuery {
+	q.getFields = append(q.getFields, "create_time")
+	return q
+}
+
+func (q *UserProfileQuery) GetUpdateTime() *UserProfileQuery {
+	q.getFields = append(q.getFields, "update_time")
+	return q
+}
+
+func (q *UserProfileQuery) GetUpdateVersion() *UserProfileQuery {
+	q.getFields = append(q.getFields, "update_version")
+	return q
+}
+
+func (q *UserProfileQuery) GetUserId() *UserProfileQuery {
+	q.getFields = append(q.getFields, "user_id")
+	return q
+}
+
+func (q *UserProfileQuery) GetUserName() *UserProfileQuery {
+	q.getFields = append(q.getFields, "user_name")
+	return q
+}
+
+func (q *UserProfileQuery) GetTodoVisibility() *UserProfileQuery {
+	q.getFields = append(q.getFields, "todo_visibility")
+	return q
+}
+
 func (q *UserProfileQuery) Select(ctx context.Context, tx *wrap.Tx) (e *UserProfile, err error) {
 	if !q.hasLimit {
 		q.limitCount = 1
@@ -1765,7 +2092,13 @@ func (q *UserProfileQuery) Select(ctx context.Context, tx *wrap.Tx) (e *UserProf
 
 	queryString, params := q.buildSelectQuery()
 	query := bytes.NewBufferString("")
-	query.WriteString("SELECT id,create_time,update_time,update_version,user_id,user_name,todo_visibility FROM user_profile ")
+	if len(q.getFields) == 0 {
+		query.WriteString("SELECT id,create_time,update_time,update_version,user_id,user_name,todo_visibility FROM user_profile ")
+	} else {
+		query.WriteString("SELECT ")
+		query.WriteString(strings.Join(q.getFields, ","))
+		query.WriteString(" FROM user_profile ")
+	}
 	query.WriteString(queryString)
 	e = &UserProfile{}
 	row := q.dao.db.QueryRow(ctx, tx, query.String(), params...)
@@ -1780,7 +2113,13 @@ func (q *UserProfileQuery) Select(ctx context.Context, tx *wrap.Tx) (e *UserProf
 func (q *UserProfileQuery) SelectList(ctx context.Context, tx *wrap.Tx) (list []*UserProfile, err error) {
 	queryString, params := q.buildSelectQuery()
 	query := bytes.NewBufferString("")
-	query.WriteString("SELECT id,create_time,update_time,update_version,user_id,user_name,todo_visibility FROM user_profile ")
+	if len(q.getFields) == 0 {
+		query.WriteString("SELECT id,create_time,update_time,update_version,user_id,user_name,todo_visibility FROM user_profile ")
+	} else {
+		query.WriteString("SELECT ")
+		query.WriteString(strings.Join(q.getFields, ","))
+		query.WriteString(" FROM user_profile ")
+	}
 	query.WriteString(queryString)
 	rows, err := q.dao.db.Query(ctx, tx, query.String(), params...)
 	if err != nil {
@@ -1827,28 +2166,89 @@ func (q *UserProfileQuery) SelectGroupBy(ctx context.Context, tx *wrap.Tx, withC
 	return q.dao.db.Query(ctx, tx, query.String(), params...)
 }
 
-func (q *UserProfileQuery) SetUpdateVersion(v int64) *UserProfileQuery {
-	q.updateFields = append(q.updateFields, "update_version")
-	q.updateParams = append(q.updateParams, v)
-	return q
+func (q *UserProfileQuery) SelectRow(ctx context.Context, tx *wrap.Tx) (row *wrap.Row) {
+	if !q.hasLimit {
+		q.limitCount = 1
+		q.hasLimit = true
+	}
+
+	queryString, params := q.buildSelectQuery()
+	query := bytes.NewBufferString("")
+	query.WriteString("SELECT ")
+	query.WriteString(strings.Join(q.getFields, ","))
+	query.WriteString(" FROM user_profile ")
+	query.WriteString(queryString)
+	return q.dao.db.QueryRow(ctx, tx, query.String(), params...)
 }
 
-func (q *UserProfileQuery) SetUserId(v string) *UserProfileQuery {
-	q.updateFields = append(q.updateFields, "user_id")
-	q.updateParams = append(q.updateParams, v)
-	return q
+func (q *UserProfileQuery) SelectRows(ctx context.Context, tx *wrap.Tx) (rows *wrap.Rows, err error) {
+	queryString, params := q.buildSelectQuery()
+	query := bytes.NewBufferString("")
+	query.WriteString("SELECT ")
+	query.WriteString(strings.Join(q.getFields, ","))
+	query.WriteString(" FROM user_profile ")
+	query.WriteString(queryString)
+	return q.dao.db.Query(ctx, tx, query.String(), params...)
 }
 
-func (q *UserProfileQuery) SetUserName(v string) *UserProfileQuery {
-	q.updateFields = append(q.updateFields, "user_name")
-	q.updateParams = append(q.updateParams, v)
-	return q
+func (q *UserProfileQuery) Insert(ctx context.Context, tx *wrap.Tx, e *UserProfile) (result *wrap.Result, err error) {
+	query := bytes.NewBufferString("")
+	query.WriteString("INSERT INTO user_profile (update_version,user_id,user_name,todo_visibility) VALUES (?,?,?,?)")
+	params := []interface{}{e.UpdateVersion, e.UserId, e.UserName, e.TodoVisibility}
+	return q.dao.db.Exec(ctx, tx, query.String(), params...)
 }
 
-func (q *UserProfileQuery) SetTodoVisibility(v string) *UserProfileQuery {
-	q.updateFields = append(q.updateFields, "todo_visibility")
-	q.updateParams = append(q.updateParams, v)
-	return q
+func (q *UserProfileQuery) BatchInsert(ctx context.Context, tx *wrap.Tx, list []*UserProfile) (result *wrap.Result, err error) {
+	query := bytes.NewBufferString("")
+	query.WriteString("INSERT INTO user_profile (update_version,user_id,user_name,todo_visibility) VALUES ")
+	query.WriteString(wrap.RepeatWithSeparator("(?,?,?,?)", len(list), ","))
+	params := make([]interface{}, len(list)*4)
+	offset := 0
+	for _, e := range list {
+		params[offset+0] = e.UpdateVersion
+		params[offset+1] = e.UserId
+		params[offset+2] = e.UserName
+		params[offset+3] = e.TodoVisibility
+		offset += 4
+	}
+
+	return q.dao.db.Exec(ctx, tx, query.String(), params...)
+}
+
+func (q *UserProfileQuery) InsertOnDuplicatedKeyUpdate(ctx context.Context, tx *wrap.Tx, e *UserProfile) (result *wrap.Result, err error) {
+	query := bytes.NewBufferString("")
+	query.WriteString("INSERT INTO user_profile (update_version,user_id,user_name,todo_visibility) VALUES (?,?,?,?)")
+	query.WriteString(" ON DUPLICATED KEY UPDATE ")
+	if len(q.duplicatedUpdateFields) > 0 {
+		query.WriteString(strings.Join(q.duplicatedUpdateFields, ","))
+		query.WriteString(",")
+	}
+	query.WriteString("update_time=now()")
+	params := []interface{}{e.UpdateVersion, e.UserId, e.UserName, e.TodoVisibility}
+	return q.dao.db.Exec(ctx, tx, query.String(), params...)
+}
+
+func (q *UserProfileQuery) BatchInsertOnDuplicatedKeyUpdate(ctx context.Context, tx *wrap.Tx, list []*UserProfile) (result *wrap.Result, err error) {
+	query := bytes.NewBufferString("")
+	query.WriteString("INSERT INTO user_profile (update_version,user_id,user_name,todo_visibility) VALUES ")
+	query.WriteString(wrap.RepeatWithSeparator("(?,?,?,?)", len(list), ","))
+	query.WriteString(" ON DUPLICATED KEY UPDATE")
+	if len(q.duplicatedUpdateFields) > 0 {
+		query.WriteString(strings.Join(q.duplicatedUpdateFields, ","))
+		query.WriteString(",")
+	}
+	query.WriteString("update_time=now()")
+	params := make([]interface{}, len(list)*4)
+	offset := 0
+	for _, e := range list {
+		params[offset+0] = e.UpdateVersion
+		params[offset+1] = e.UserId
+		params[offset+2] = e.UserName
+		params[offset+3] = e.TodoVisibility
+		offset += 4
+	}
+
+	return q.dao.db.Exec(ctx, tx, query.String(), params...)
 }
 
 func (q *UserProfileQuery) Update(ctx context.Context, tx *wrap.Tx) (result *wrap.Result, err error) {
@@ -1861,6 +2261,7 @@ func (q *UserProfileQuery) Update(ctx context.Context, tx *wrap.Tx) (result *wra
 		updateItems[i] = v + "=?"
 	}
 	query.WriteString(strings.Join(updateItems, ","))
+	query.WriteString(",update_time=now()")
 	where := q.where.String()
 	if where != "" {
 		query.WriteString(" WHERE ")
@@ -1889,56 +2290,12 @@ func NewUserProfileDao(db *DB) (t *UserProfileDao, err error) {
 	return t, nil
 }
 
-func (dao *UserProfileDao) Insert(ctx context.Context, tx *wrap.Tx, e *UserProfile, onDuplicatedKeyUpdate bool) (result *wrap.Result, err error) {
-	query := bytes.NewBufferString("")
-	query.WriteString("INSERT INTO user_profile (update_version,user_id,user_name,todo_visibility) VALUES (?,?,?,?)")
-	if onDuplicatedKeyUpdate {
-		query.WriteString(" ON DUPLICATED KEY UPDATE update_version=VALUES(update_version),user_name=VALUES(user_name),todo_visibility=VALUES(todo_visibility)")
-	}
-	params := []interface{}{e.UpdateVersion, e.UserId, e.UserName, e.TodoVisibility}
-	return dao.db.Exec(ctx, tx, query.String(), params...)
-}
-
-func (dao *UserProfileDao) BatchInsert(ctx context.Context, tx *wrap.Tx, list []*UserProfile, onDuplicatedKeyUpdate bool) (result *wrap.Result, err error) {
-	query := bytes.NewBufferString("")
-	query.WriteString("INSERT INTO user_profile (update_version,user_id,user_name,todo_visibility) VALUES ")
-	query.WriteString(wrap.RepeatWithSeparator("(?,?,?,?)", len(list), ","))
-	if onDuplicatedKeyUpdate {
-		query.WriteString(" ON DUPLICATED KEY UPDATE update_version=VALUES(update_version),user_name=VALUES(user_name),todo_visibility=VALUES(todo_visibility)")
-	}
-	params := make([]interface{}, len(list)*4)
-	offset := 0
-	for _, e := range list {
-		params[offset+0] = e.UpdateVersion
-		params[offset+1] = e.UserId
-		params[offset+2] = e.UserName
-		params[offset+3] = e.TodoVisibility
-		offset += 4
-	}
-
-	return dao.db.Exec(ctx, tx, query.String(), params...)
-}
-
-func (dao *UserProfileDao) DeleteById(ctx context.Context, tx *wrap.Tx, id uint64) (result *wrap.Result, err error) {
-	query := "DELETE FROM UserProfile WHERE id=?"
-	return dao.db.Exec(ctx, tx, query, id)
-}
-
-func (dao *UserProfileDao) UpdateById(ctx context.Context, tx *wrap.Tx, e *UserProfile) (result *wrap.Result, err error) {
-	query := "UPDATE user_profile SET update_version=?,user_id=?,user_name=?,todo_visibility=? WHERE id=?"
-	params := []interface{}{e.UpdateVersion, e.UserId, e.UserName, e.TodoVisibility, e.Id}
-	return dao.db.Exec(ctx, tx, query, params...)
-}
-
-func (dao *UserProfileDao) SelectById(ctx context.Context, tx *wrap.Tx, id int64) (e *UserProfile, err error) {
-	query := "SELECT id,create_time,update_time,update_version,user_id,user_name,todo_visibility FROM user_profile WHERE id=?"
-	row := dao.db.QueryRow(ctx, tx, query, id)
-	e = &UserProfile{}
-	err = row.Scan(&e.Id, &e.CreateTime, &e.UpdateTime, &e.UpdateVersion, &e.UserId, &e.UserName, &e.TodoVisibility)
-	if err == wrap.ErrNoRows {
-		return nil, nil
-	}
-	return e, err
+func (dao *UserProfileDao) Query() *UserProfileQuery {
+	q := &UserProfileQuery{}
+	q.dao = dao
+	q.tableName = "user_profile"
+	q.where = bytes.NewBufferString("")
+	return q
 }
 
 type DB struct {
