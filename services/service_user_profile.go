@@ -9,7 +9,7 @@ import (
 )
 
 func (s *TodoService) GetUserProfile(ctx *rest.Context, userID string) (userProfile *models.UserProfile, err error) {
-	dbUserProfile, err := s.todoDB.UserProfile.GetQuery().UserId_Equal(userID).QueryOne(ctx, nil)
+	dbUserProfile, err := s.todoDB.UserProfile.Query().UserIdEqual(userID).Select(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -19,7 +19,7 @@ func (s *TodoService) GetUserProfile(ctx *rest.Context, userID string) (userProf
 		dbUserProfile.UserId = userID
 		dbUserProfile.UserName = "无名氏" + rand.NextNumberFixedLength(8)
 		dbUserProfile.TodoVisibility = string(models.TodoVisibilityPublic)
-		_, err = s.todoDB.UserProfile.Insert(ctx, nil, dbUserProfile)
+		_, err = s.todoDB.UserProfile.Insert(ctx, nil, dbUserProfile, false)
 		if err != nil {
 			return nil, err
 		}
@@ -35,7 +35,7 @@ func (s *TodoService) GetUserProfile(ctx *rest.Context, userID string) (userProf
 }
 
 func (s *TodoService) UpdateUserProfileTodoVisibility(ctx *rest.Context, userID string, visibility models.TodoVisibility) (err error) {
-	dbUserProfile, err := s.todoDB.UserProfile.GetQuery().UserId_Equal(userID).QueryOne(ctx, nil)
+	dbUserProfile, err := s.todoDB.UserProfile.Query().UserIdEqual(userID).Select(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -44,9 +44,9 @@ func (s *TodoService) UpdateUserProfileTodoVisibility(ctx *rest.Context, userID 
 		return errors.NotFound("UserProfile不存在")
 	}
 
-	err = s.todoDB.UserProfile.GetUpdate().
-		TodoVisibility(string(visibility)).
-		Update(ctx, nil, dbUserProfile.Id)
+	_, err = s.todoDB.UserProfile.Query().IdEqual(dbUserProfile.Id).
+		SetTodoVisibility(string(visibility)).
+		Update(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (s *TodoService) UpdateUserProfileTodoVisibility(ctx *rest.Context, userID 
 }
 
 func (s *TodoService) UpdateUserProfileUserName(ctx *rest.Context, userID string, userName string) (err error) {
-	dbUserProfile, err := s.todoDB.UserProfile.GetQuery().UserId_Equal(userID).QueryOne(ctx, nil)
+	dbUserProfile, err := s.todoDB.UserProfile.Query().UserIdEqual(userID).Select(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (s *TodoService) UpdateUserProfileUserName(ctx *rest.Context, userID string
 		return errors.NotFound("UserProfile不存在")
 	}
 
-	err = s.todoDB.UserProfile.GetUpdate().UserName(userName).Update(ctx, nil, dbUserProfile.Id)
+	_, err = s.todoDB.UserProfile.Query().IdEqual(dbUserProfile.Id).SetUserName(userName).Update(ctx, nil)
 	if err != nil {
 		return err
 	}

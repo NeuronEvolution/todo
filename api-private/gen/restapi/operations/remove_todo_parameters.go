@@ -57,6 +57,7 @@ func (o *RemoveTodoParams) BindRequest(r *http.Request, route *middleware.Matche
 	return nil
 }
 
+// bindTodoID binds and validates parameter TodoID from path.
 func (o *RemoveTodoParams) bindTodoID(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {

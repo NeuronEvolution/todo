@@ -57,6 +57,7 @@ func (o *GetFriendParams) BindRequest(r *http.Request, route *middleware.Matched
 	return nil
 }
 
+// bindFriendID binds and validates parameter FriendID from path.
 func (o *GetFriendParams) bindFriendID(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {

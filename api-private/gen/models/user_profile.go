@@ -31,12 +31,10 @@ func (m *UserProfile) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateTodoVisibility(formats); err != nil {
-		// prop
 		res = append(res, err)
 	}
 
 	if err := m.validateUserName(formats); err != nil {
-		// prop
 		res = append(res, err)
 	}
 

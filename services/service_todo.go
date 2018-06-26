@@ -9,7 +9,7 @@ import (
 )
 
 func (s *TodoService) GetTodoList(ctx *rest.Context, userId string) (result []*models.TodoItem, err error) {
-	dbTodoList, err := s.todoDB.Todo.GetQuery().UserId_Equal(userId).QueryList(ctx, nil)
+	dbTodoList, err := s.todoDB.Todo.Query().UserIdEqual(userId).SelectList(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -28,9 +28,9 @@ func (s *TodoService) GetTodoList(ctx *rest.Context, userId string) (result []*m
 }
 
 func (s *TodoService) GetTodo(ctx *rest.Context, userId string, todoId string) (todoItem *models.TodoItem, err error) {
-	dbTodo, err := s.todoDB.Todo.GetQuery().
-		TodoId_Equal(todoId).And().UserId_Equal(userId).
-		QueryOne(ctx, nil)
+	dbTodo, err := s.todoDB.Todo.Query().
+		TodoIdEqual(todoId).And().UserIdEqual(userId).
+		Select(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (s *TodoService) AddTodo(ctx *rest.Context, userId string, todoItem *models
 	dbTodo := todo_db.ToTodo(todoItem)
 	dbTodo.UserId = userId
 	dbTodo.TodoId = rand.NextHex(16)
-	_, err = s.todoDB.Todo.Insert(ctx, nil, dbTodo)
+	_, err = s.todoDB.Todo.Insert(ctx, nil, dbTodo, false)
 	if err != nil {
 		return "", err
 	}
@@ -85,9 +85,9 @@ func (s *TodoService) UpdateTodo(ctx *rest.Context, userId string, todoID string
 		return err
 	}
 
-	dbTodo, err := s.todoDB.Todo.GetQuery().
-		UserId_Equal(userId).And().TodoId_Equal(todoID).
-		QueryOne(ctx, nil)
+	dbTodo, err := s.todoDB.Todo.Query().
+		UserIdEqual(userId).And().TodoIdEqual(todoID).
+		Select(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -96,13 +96,13 @@ func (s *TodoService) UpdateTodo(ctx *rest.Context, userId string, todoID string
 		return errors.NotFound("计划不存在")
 	}
 
-	err = s.todoDB.Todo.GetUpdate().
-		TodoCategory(todoItem.Category).
-		TodoTitle(todoItem.Title).
-		TodoDesc(todoItem.Desc).
-		TodoStatus(string(todoItem.Status)).
-		TodoPriority(todoItem.Priority).
-		Update(ctx, nil, dbTodo.Id)
+	_, err = s.todoDB.Todo.Query().IdEqual(dbTodo.Id).
+		SetTodoCategory(todoItem.Category).
+		SetTodoTitle(todoItem.Title).
+		SetTodoDesc(todoItem.Desc).
+		SetTodoStatus(string(todoItem.Status)).
+		SetTodoPriority(todoItem.Priority).
+		Update(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -118,9 +118,9 @@ func (s *TodoService) UpdateTodo(ctx *rest.Context, userId string, todoID string
 }
 
 func (s *TodoService) RemoveTodo(ctx *rest.Context, userId string, todoId string) error {
-	dbTodo, err := s.todoDB.Todo.GetQuery().
-		UserId_Equal(userId).And().TodoId_Equal(todoId).
-		QueryOne(ctx, nil)
+	dbTodo, err := s.todoDB.Todo.Query().
+		UserIdEqual(userId).And().TodoIdEqual(todoId).
+		Select(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func (s *TodoService) RemoveTodo(ctx *rest.Context, userId string, todoId string
 		return errors.NotFound("计划不存在")
 	}
 
-	err = s.todoDB.Todo.Delete(ctx, nil, dbTodo.Id)
+	_, err = s.todoDB.Todo.DeleteById(ctx, nil, dbTodo.Id)
 	if err != nil {
 		return err
 	}

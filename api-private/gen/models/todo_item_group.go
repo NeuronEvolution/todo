@@ -33,12 +33,10 @@ func (m *TodoItemGroup) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateCategory(formats); err != nil {
-		// prop
 		res = append(res, err)
 	}
 
 	if err := m.validateTodoItemList(formats); err != nil {
-		// prop
 		res = append(res, err)
 	}
 
@@ -64,20 +62,17 @@ func (m *TodoItemGroup) validateTodoItemList(formats strfmt.Registry) error {
 	}
 
 	for i := 0; i < len(m.TodoItemList); i++ {
-
 		if swag.IsZero(m.TodoItemList[i]) { // not required
 			continue
 		}
 
 		if m.TodoItemList[i] != nil {
-
 			if err := m.TodoItemList[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("todoItemList" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
-
 		}
 
 	}

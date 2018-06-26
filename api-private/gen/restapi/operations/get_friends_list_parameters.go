@@ -69,6 +69,7 @@ func (o *GetFriendsListParams) BindRequest(r *http.Request, route *middleware.Ma
 	return nil
 }
 
+// bindPageSize binds and validates parameter PageSize from query.
 func (o *GetFriendsListParams) bindPageSize(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {
@@ -90,6 +91,7 @@ func (o *GetFriendsListParams) bindPageSize(rawData []string, hasKey bool, forma
 	return nil
 }
 
+// bindPageToken binds and validates parameter PageToken from query.
 func (o *GetFriendsListParams) bindPageToken(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {

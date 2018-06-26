@@ -2,14 +2,13 @@ package services
 
 import (
 	"github.com/NeuronEvolution/todo/models"
-	"github.com/NeuronEvolution/todo/storages/todo_db"
 	"github.com/NeuronFramework/rest"
 )
 
 func (s *TodoService) GetCategoryNameList(ctx *rest.Context, userId string) (result []*models.CategoryInfo, err error) {
-	rows, err := s.todoDB.Todo.GetQuery().UserId_Equal(userId).
-		GroupBy(todo_db.TODO_FIELD_TODO_CATEGORY).
-		OrderByGroupCount(false).QueryGroupBy(ctx, nil)
+	rows, err := s.todoDB.Todo.Query().UserIdEqual(userId).
+		GroupByTodoCategory(true).
+		OrderByGroupCount(false).SelectGroupBy(ctx, nil, true)
 	if err != nil {
 		return nil, err
 	}

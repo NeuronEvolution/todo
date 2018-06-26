@@ -45,22 +45,18 @@ func (m *TodoItem) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateCategory(formats); err != nil {
-		// prop
 		res = append(res, err)
 	}
 
 	if err := m.validateStatus(formats); err != nil {
-		// prop
 		res = append(res, err)
 	}
 
 	if err := m.validateTitle(formats); err != nil {
-		// prop
 		res = append(res, err)
 	}
 
 	if err := m.validateTodoID(formats); err != nil {
-		// prop
 		res = append(res, err)
 	}
 

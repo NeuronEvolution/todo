@@ -2,7 +2,6 @@ package services
 
 import (
 	"github.com/NeuronEvolution/todo/models"
-	"github.com/NeuronEvolution/todo/storages/todo_db"
 	"github.com/NeuronFramework/errors"
 	"github.com/NeuronFramework/rest"
 	"go.uber.org/zap"
@@ -22,11 +21,11 @@ func (s *TodoService) GetFriendsList(ctx *rest.Context, userID string, query *mo
 		limitCount = models.DefaultPageSize
 	}
 
-	rows, err := s.todoDB.Todo.GetQuery().
-		GroupBy(todo_db.TODO_FIELD_USER_ID).
+	rows, err := s.todoDB.Todo.Query().
+		GroupByUserId(false).
 		OrderByGroupCount(false).
 		Limit(int64(limitStart), limitCount).
-		QueryGroupBy(ctx, nil)
+		SelectGroupBy(ctx, nil, true)
 	if err != nil {
 		return nil, "", err
 	}
@@ -39,7 +38,7 @@ func (s *TodoService) GetFriendsList(ctx *rest.Context, userID string, query *mo
 			return nil, "", err
 		}
 
-		dbUserProfile, err := s.todoDB.UserProfile.GetQuery().UserId_Equal(e.UserID).QueryOne(ctx, nil)
+		dbUserProfile, err := s.todoDB.UserProfile.Query().UserIdEqual(e.UserID).Select(ctx, nil)
 		if err != nil {
 			s.logger.Warn("user profile not exist", zap.String("UserID", e.UserID))
 			continue
@@ -64,16 +63,15 @@ func (s *TodoService) GetFriendsList(ctx *rest.Context, userID string, query *mo
 }
 
 func (s *TodoService) GetFriend(ctx *rest.Context, userID string, friendID string) (friend *models.FriendInfo, err error) {
-	dbFriendProfile, err := s.todoDB.UserProfile.GetQuery().UserId_Equal(friendID).QueryOne(ctx, nil)
+	dbFriendProfile, err := s.todoDB.UserProfile.Query().UserIdEqual(friendID).Select(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-
 	if dbFriendProfile == nil {
 		return nil, errors.NotFound("用户不存在")
 	}
 
-	todoCount, err := s.todoDB.Todo.GetQuery().UserId_Equal(friendID).QueryCount(ctx, nil)
+	todoCount, err := s.todoDB.Todo.Query().UserIdEqual(friendID).SelectCount(ctx, nil)
 	if err != nil {
 		return nil, err
 	}

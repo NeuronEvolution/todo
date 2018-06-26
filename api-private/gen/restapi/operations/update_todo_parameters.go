@@ -70,7 +70,6 @@ func (o *UpdateTodoParams) BindRequest(r *http.Request, route *middleware.Matche
 				res = append(res, errors.NewParseError("todoItem", "body", "", err))
 			}
 		} else {
-
 			// validate body object
 			if err := body.Validate(route.Formats); err != nil {
 				res = append(res, err)
@@ -89,6 +88,7 @@ func (o *UpdateTodoParams) BindRequest(r *http.Request, route *middleware.Matche
 	return nil
 }
 
+// bindTodoID binds and validates parameter TodoID from path.
 func (o *UpdateTodoParams) bindTodoID(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {

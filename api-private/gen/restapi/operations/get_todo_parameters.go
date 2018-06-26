@@ -57,6 +57,7 @@ func (o *GetTodoParams) BindRequest(r *http.Request, route *middleware.MatchedRo
 	return nil
 }
 
+// bindTodoID binds and validates parameter TodoID from path.
 func (o *GetTodoParams) bindTodoID(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {

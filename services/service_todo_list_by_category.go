@@ -12,7 +12,7 @@ func (s *TodoService) GetTodoListByCategory(ctx *rest.Context, userId string, fr
 	targetUserID := userId
 	if friendId != "" && friendId != userId {
 		targetUserID = friendId
-		dbUserProfile, err := s.todoDB.UserProfile.GetQuery().UserId_Equal(targetUserID).QueryOne(ctx, nil)
+		dbUserProfile, err := s.todoDB.UserProfile.Query().UserIdEqual(targetUserID).Select(ctx, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -22,7 +22,7 @@ func (s *TodoService) GetTodoListByCategory(ctx *rest.Context, userId string, fr
 		}
 	}
 
-	dbTodoList, err := s.todoDB.Todo.GetQuery().UserId_Equal(targetUserID).QueryList(ctx, nil)
+	dbTodoList, err := s.todoDB.Todo.Query().UserIdEqual(targetUserID).SelectList(ctx, nil)
 	if err != nil {
 		return nil, err
 	}

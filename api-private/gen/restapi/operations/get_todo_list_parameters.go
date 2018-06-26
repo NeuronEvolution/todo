@@ -59,6 +59,7 @@ func (o *GetTodoListParams) BindRequest(r *http.Request, route *middleware.Match
 	return nil
 }
 
+// bindFriendID binds and validates parameter FriendID from query.
 func (o *GetTodoListParams) bindFriendID(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {

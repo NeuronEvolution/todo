@@ -59,6 +59,7 @@ func (o *GetTodoListByCategoryParams) BindRequest(r *http.Request, route *middle
 	return nil
 }
 
+// bindFriendID binds and validates parameter FriendID from query.
 func (o *GetTodoListByCategoryParams) bindFriendID(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {

@@ -33,12 +33,10 @@ func (m *FriendInfoList) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateItems(formats); err != nil {
-		// prop
 		res = append(res, err)
 	}
 
 	if err := m.validateNextPageToken(formats); err != nil {
-		// prop
 		res = append(res, err)
 	}
 
@@ -55,20 +53,17 @@ func (m *FriendInfoList) validateItems(formats strfmt.Registry) error {
 	}
 
 	for i := 0; i < len(m.Items); i++ {
-
 		if swag.IsZero(m.Items[i]) { // not required
 			continue
 		}
 
 		if m.Items[i] != nil {
-
 			if err := m.Items[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("items" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
-
 		}
 
 	}

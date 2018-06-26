@@ -61,6 +61,7 @@ func (o *UpdateUserProfileUserNameParams) BindRequest(r *http.Request, route *mi
 	return nil
 }
 
+// bindUserName binds and validates parameter UserName from query.
 func (o *UpdateUserProfileUserNameParams) bindUserName(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	if !hasKey {
 		return errors.Required("userName", "query")
